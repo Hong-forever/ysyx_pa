@@ -1,6 +1,7 @@
-STUID = ysyx_22040000
-STUNAME = 张三
 # test
+STUID = ysyxhhh
+STUNAME = hhh
+
 # DO NOT modify the following code!!!
 
 TRACER = tracer-ysyx
