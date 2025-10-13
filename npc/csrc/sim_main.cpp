@@ -3,36 +3,33 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Vtest.h"
-#include "verilated.h"
+#include "Vtop.h"
+#include <verilated.h>
 
 
-#define WAVE_FST 0
+#define WAVE_FST 1
 
 #if WAVE_FST
     #include "verilated_fst_c.h"    //export fst
+    VerilatedFstC* tfp = new VerilatedFstC;
 #else                               
     #include "verilated_vcd_c.h"    //export vcd
+    VerilatedVcdC* tfp = new VerilatedVcdC;
 #endif
 
 
 int main(int argc, char* argv[]) {
     VerilatedContext* contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
-    Vtest* top = new Vtest{contextp};
+    Vtop* top = new Vtop{contextp};
 
-#if WAVE_FST
-    VerilatedFstC* tfp = new VerilatedFstC;
-#else                              
-    VerilatedVcdC* tfp = new VerilatedVcdC;
-#endif
     contextp->traceEverOn(true);
-    top->trace(tfp, 0);
+    top->trace(tfp, 99);
 
 #if WAVE_FST
-    tfp->open("wave.fst");
+    tfp->open("build/wave.fst");
 #else
-    tfp->open("wave.vcd");
+    tfp->open("build/wave.vcd");
 #endif
 
     while (!contextp->gotFinish()) {
