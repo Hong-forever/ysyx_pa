@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# test
-=======
->>>>>>> pa0
 STUID = ysyxhhh
 STUNAME = hhh
 
