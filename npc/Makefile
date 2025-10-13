@@ -71,8 +71,8 @@ run:
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@echo "\n-------------------- SIM --------------------"
-	@rm -rf $(BUILD_DIR)
-	@mkdir -p $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)/logs
+	@mkdir -p $(BUILD_DIR)/logs
 	@$(BIN) +trace
 	gtkwave $(BUILD_DIR)/$(WAVE)
 	
