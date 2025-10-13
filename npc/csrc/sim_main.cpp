@@ -32,7 +32,9 @@ int main(int argc, char* argv[]) {
     tfp->open("build/wave.vcd");
 #endif
 
-    while (!contextp->gotFinish()) {
+    int cycle = 50;
+
+    while (cycle/*!contextp->gotFinish()*/) {
         int a = rand() & 1;
         int b = rand() & 1;
         top->a = a;
@@ -44,6 +46,7 @@ int main(int argc, char* argv[]) {
         contextp->timeInc(1);
 
         assert(top->f == (a ^ b));
+        cycle--;
     }
     delete top;
     tfp->close();
