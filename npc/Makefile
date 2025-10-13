@@ -88,4 +88,7 @@ gdb:
 	@mkdir -p $(BUILD_DIR)/logs
 	gdb -s $(BIN) --args $(BIN)
 
+clean:
+	rm -rf $(BUILD_DIR)
+
 include ../Makefile
