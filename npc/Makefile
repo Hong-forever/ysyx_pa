@@ -74,7 +74,7 @@ sim:
 	@rm -rf $(BUILD_DIR)/logs
 	@mkdir -p $(BUILD_DIR)/logs
 	@$(BIN) +trace
-	gtkwave $(BUILD_DIR)/$(WAVE)
+	gtkwave $(BUILD_DIR)/logs/$(WAVE)
 	
 gdb:
 	@echo "-------- VERILATE --- AND --- BUILD --------"

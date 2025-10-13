@@ -27,9 +27,9 @@ int main(int argc, char* argv[]) {
     top->trace(tfp, 99);
 
 #if WAVE_FST
-    tfp->open("build/wave.fst");
+    tfp->open("build/logs/wave.fst");
 #else
-    tfp->open("build/wave.vcd");
+    tfp->open("build/logs/wave.vcd");
 #endif
 
     int cycle = 50;
