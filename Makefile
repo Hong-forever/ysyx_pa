@@ -1,3 +1,4 @@
+# test
 STUID = ysyxhhh
 STUNAME = hhh
 
