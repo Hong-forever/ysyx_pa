@@ -1,4 +1,4 @@
-module top
+module vga_mem
 (
     input   wire                  clk,
     input   wire                  rst,
