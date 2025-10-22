@@ -80,6 +80,22 @@ static int cmd_si(char *args) {
     return 0;
 }
 
+static int cmd_info(char *args) {
+    char *arg = strtok(args, " ");
+
+    if(arg == NULL) {
+        printf("info <subcommand>\n");
+        printf(" r  - print Integer regs status\n");
+        printf(" w  - print watching point status\n");
+    } else {
+        if(strcmp(arg, "r") == 0) {
+            isa_reg_display();            
+        }
+    }
+
+    return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -89,7 +105,7 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
   { "si", "Execute inst step", cmd_si },
-//  { "info", "Print register or monitoring point information", cmd_info },
+  { "info", "Print register or monitoring point information", cmd_info },
 //  { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes" },
 //  { "p", "Find the value of the expression EXPR" },
 //  { "w", "Stop if EXPR changes" },
