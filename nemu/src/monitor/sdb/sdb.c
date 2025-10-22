@@ -95,18 +95,17 @@ static int cmd_info(char *args) {
         if(arg[1] != '0') {
             printf("Please input correct cmd\n");
             info_cmd_print();
-        }
-
-        switch(cmd_char) {
-            case 'r': isa_reg_display(); break;
-            case 'w': break;
-            default : 
-                printf("Please input correct cmd\n");
-                info_cmd_print();
-                break;
-        }
+        } else {
+            switch(cmd_char) {
+                case 'r': isa_reg_display(); break;
+                case 'w': break;
+                default : 
+                    printf("Please input correct cmd\n");
+                    info_cmd_print();
+                    break;
+            }
+        }       
     }
-
     return 0;
 }
 
