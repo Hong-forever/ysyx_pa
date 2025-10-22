@@ -68,7 +68,7 @@ static int cmd_si(char *args) {
         }
         
         int n = atoi(arg);
-        if(n < 0) {
+        if(n <= 0) {
             printf("Error: Must be a positive number\n");
             return 0;
         }
