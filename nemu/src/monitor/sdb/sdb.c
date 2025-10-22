@@ -87,9 +87,7 @@ static int cmd_info(char *args) {
         printf(" r  - print Integer regs status\n");
         printf(" w  - print watching point status\n");
     } else {
-        printf("%s\n", arg);
         if(strcmp(arg, "r") == 0) {
-            printf("%s\n", arg);
             isa_reg_display();            
         }
     }
