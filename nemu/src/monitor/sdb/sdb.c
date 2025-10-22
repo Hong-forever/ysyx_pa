@@ -92,15 +92,15 @@ static int cmd_info(char *args) {
         info_cmd_print();
     } else {
         char cmd_char = arg[0];
-        if(arg[1] != '0') {
-            printf("Please input correct cmd\n");
+        if(arg[1] != '\0') {
+            printf("---Please input correct cmd---\n");
             info_cmd_print();
         } else {
             switch(cmd_char) {
                 case 'r': isa_reg_display(); break;
                 case 'w': break;
                 default : 
-                    printf("Please input correct cmd\n");
+                    printf("---Please input correct cmd---\n");
                     info_cmd_print();
                     break;
             }
