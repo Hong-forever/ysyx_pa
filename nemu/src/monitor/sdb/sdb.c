@@ -119,7 +119,7 @@ static int cmd_x(char *args) {
         int n = atoi(arg);
         char *endptr;
         word_t expr = (word_t)strtol(expr_arg, &endptr, 16);
-        if(n <= 0 || *endptr != '\0' || (expr >= (word_t)PMEM_LEFT && expr < (word_t)PMEM_RIGHT)) {
+        if(n <= 0 || *endptr != '\0' || (expr < (word_t)PMEM_LEFT && expr >= (word_t)PMEM_RIGHT)) {
             printf("Please input correctly\n");
             return 0;
         }
