@@ -87,10 +87,17 @@ static int cmd_info(char *args) {
         printf(" r  - print Integer regs status\n");
         printf(" w  - print watching point status\n");
     } else {
-        if(strcmp(arg, "r") == 0) {
-            isa_reg_display(); 
-        } else {
-            printf("no\n");
+        char cmd_char = arg[0];
+
+        switch(cmd_char) {
+            case 'r': isa_reg_display(); break;
+            case 'w': break;
+            default : 
+                printf("Please input correct cmd\n");
+                printf("info <subcommand>\n");
+                printf(" r  - print Integer regs status\n");
+                printf(" w  - print watching point status\n");
+                break;
         }
     }
 
