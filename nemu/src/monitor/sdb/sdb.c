@@ -89,6 +89,7 @@ static int cmd_info(char *args) {
     } else {
         printf("%s\n", arg);
         if(strcmp(arg, "r") == 0) {
+            printf("%s\n", arg);
             isa_reg_display();            
         }
     }
