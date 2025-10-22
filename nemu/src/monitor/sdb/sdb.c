@@ -123,7 +123,7 @@ static int cmd_x(char *args) {
             return 0;
         }
         for(int i=0; i<n; i++) {
-            printf("addr-%08x: %08x\n", expr+4*i, paddr_read(expr+4*i+CONFIG_MBASE, 4));
+            printf("addr-0x%08x: %08x\n", expr+4*i, paddr_read(expr+4*i, 4));
         }
     }
     return 0;
