@@ -82,7 +82,7 @@ static int cmd_si(char *args) {
 
 static int cmd_info(char *args) {
     char *arg = strtok(args, " ");
-
+    printf("%s\n", arg);
     if(arg == NULL) {
         printf("info <subcommand>\n");
         printf(" r  - print Integer regs status\n");
