@@ -88,7 +88,7 @@ static int cmd_info(char *args) {
         printf(" w  - print watching point status\n");
     } else {
         if(strcmp(arg, "r") == 0) {
-            isa_reg_display();            
+            isa_reg_display(); 
         } else {
             printf("no\n");
         }
