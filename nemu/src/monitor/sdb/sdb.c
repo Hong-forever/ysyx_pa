@@ -54,6 +54,10 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+static int cmd_si(char *args) {
+    return -1;    
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -62,6 +66,13 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Execute inst step", cmd_si },
+//  { "info", "Print register or monitoring point information", cmd_info },
+//  { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes" },
+//  { "p", "Find the value of the expression EXPR" },
+//  { "w", "Stop if EXPR changes" },
+//  { "d", "Delete the monitor point with serial number N" },
+
 
   /* TODO: Add more commands */
 
@@ -71,7 +82,9 @@ static struct {
 
 static int cmd_help(char *args) {
   /* extract the first argument */
+  printf("args: = %s\n", args);
   char *arg = strtok(NULL, " ");
+  printf("arg = %s\n", arg);
   int i;
 
   if (arg == NULL) {
