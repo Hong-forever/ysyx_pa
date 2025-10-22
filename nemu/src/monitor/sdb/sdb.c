@@ -80,23 +80,29 @@ static int cmd_si(char *args) {
     return 0;
 }
 
+static void info_cmd_print() {
+    printf("info <subcommand>\n");
+    printf(" r  - print Integer regs status\n");
+    printf(" w  - print watching point status\n");
+}
+
 static int cmd_info(char *args) {
     char *arg = strtok(args, " ");
     if(arg == NULL) {
-        printf("info <subcommand>\n");
-        printf(" r  - print Integer regs status\n");
-        printf(" w  - print watching point status\n");
+        info_cmd_print();
     } else {
         char cmd_char = arg[0];
+        if(arg[1] != '0') {
+            printf("Please input correct cmd\n");
+            info_cmd_print();
+        }
 
         switch(cmd_char) {
             case 'r': isa_reg_display(); break;
             case 'w': break;
             default : 
                 printf("Please input correct cmd\n");
-                printf("info <subcommand>\n");
-                printf(" r  - print Integer regs status\n");
-                printf(" w  - print watching point status\n");
+                info_cmd_print();
                 break;
         }
     }
