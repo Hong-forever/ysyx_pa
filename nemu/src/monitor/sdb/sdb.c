@@ -117,7 +117,7 @@ static int cmd_x(char *args) {
         printf("Error: Please input: x <N> <EXPR>\n");
     } else {
         int n = atoi(arg);
-        word_t expr = (word_t)atoi(expr_arg);
+        int expr = atoi(expr_arg);
         if(n <= 0 ) {
             printf("Please input a positive number\n");
             return 0;
