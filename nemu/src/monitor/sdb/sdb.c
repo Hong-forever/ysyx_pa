@@ -117,12 +117,12 @@ static int cmd_x(char *args) {
         printf("Error: Please input: x <N> <EXPR>\n");
     } else {
         int n = atoi(arg);
-        int expr = atoi(expr_arg);
-        if(n <= 0 ) {
-            printf("Please input a positive number\n");
+        char *endptr;
+        word_t expr = (word_t)strtol(expr_arg, &endptr, 16);
+        if(n <= 0 || *endptr != '\0') {
+            printf("Please input correctly\n");
             return 0;
         }
-        printf("%08x\n", expr);
         for(int i=0; i<n; i++) {
             printf("addr-0x%08x: %08x\n", expr+4*i, paddr_read(expr+4*i, 4));
         }
