@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
+#include <memory/paddr.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -109,6 +110,25 @@ static int cmd_info(char *args) {
     return 0;
 }
 
+static int cmd_x(char *args) {
+    char *arg = strtok(args, " ");
+    char *expr_arg = strtok(NULL, " ");
+    if(arg == NULL || expr_arg == NULL) {
+        printf("Error: Please input: x <N> <EXPR>\n");
+    } else {
+        int n = atoi(arg);
+        word_t expr = atoi(expr_arg);
+        if(n <= 0 ) {
+            printf("Please input a positive number\n");
+            return 0;
+        }
+        for(int i=0; i<n; i++) {
+            printf("addr-%08x: %08x\n", expr+4*i, paddr_read(expr+4*i, 4));
+        }
+    }
+    return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -119,10 +139,10 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   { "si", "Execute inst step", cmd_si },
   { "info", "Print register or monitoring point information", cmd_info },
-//  { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes" },
-//  { "p", "Find the value of the expression EXPR" },
-//  { "w", "Stop if EXPR changes" },
-//  { "d", "Delete the monitor point with serial number N" },
+  { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
+//  { "p", "Find the value of the expression EXPR", cmd_p },
+//  { "w", "Stop if EXPR changes", cmd_w },
+//  { "d", "Delete the monitor point with serial number N", cmd_d },
 
 
   /* TODO: Add more commands */
