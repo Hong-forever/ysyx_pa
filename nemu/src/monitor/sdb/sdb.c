@@ -82,12 +82,12 @@ static int cmd_si(char *args) {
 
 static int cmd_info(char *args) {
     char *arg = strtok(args, " ");
-    printf("%s\n", arg);
     if(arg == NULL) {
         printf("info <subcommand>\n");
         printf(" r  - print Integer regs status\n");
         printf(" w  - print watching point status\n");
     } else {
+        printf("%s\n", arg);
         if(strcmp(arg, "r") == 0) {
             isa_reg_display();            
         }
