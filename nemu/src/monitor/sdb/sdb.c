@@ -55,7 +55,29 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_si(char *args) {
-    return -1;    
+    char *arg = strtok(args, " ");
+    if(arg == NULL) {
+        cpu_exec(1);
+        printf("Exe 1 inst\n"); 
+    } else {
+        for(char *p = arg; *p != '\0'; p++) {
+            if(!isdigit(*p)) {
+                printf("Error: need a number\n");
+                return 0;
+            }
+        }
+        
+        int n = atoi(arg);
+        if(n < 0) {
+            printf("Error: Must be a positive number\n");
+            return 0;
+        }
+
+        cpu_exec((uint64_t)n);
+        printf("Exe %d %s\n", n, n>1?"insts":"inst");
+    }
+    
+    return 0;
 }
 
 static struct {
