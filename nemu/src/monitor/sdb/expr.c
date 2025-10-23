@@ -244,7 +244,7 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
-    printf("%d\n", token->type);
+    *success = true;
 
     switch(token->type) {
         case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
