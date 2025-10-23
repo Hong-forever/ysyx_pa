@@ -208,6 +208,7 @@ word_t eval_expression(bool *success) {
 
 word_t eval_term(bool *success) {
     word_t result = eval_factor(success);
+    printf("term result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
     
     while(1) {
