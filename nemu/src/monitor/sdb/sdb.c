@@ -137,7 +137,7 @@ static int cmd_p(char *args) {
         return 0;
     }
 
-    printf("%s\n", args);
+    //printf("%s\n", args);
 
     bool success;
     word_t result = expr(args, &success);
