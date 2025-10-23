@@ -244,6 +244,8 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
+    printf("%d\n", token->type);
+
     switch(token->type) {
         case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
         case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
