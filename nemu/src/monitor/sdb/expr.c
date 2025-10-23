@@ -14,7 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
-
+#include "../../isa/riscv32/local-include/reg.h"
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
@@ -22,7 +22,11 @@
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
-
+  TK_NEQ,
+  TK_NUM,
+  TK_HEX_NUM,
+  TK_NEG,
+  TK_REG,
   /* TODO: Add more token types */
 
 };
@@ -37,8 +41,18 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+  {"0x[0-9a-fA-F]+", TK_HEX_NUM},
+  {"[0-9]+", TK_NUM},
   {"\\+", '+'},         // plus
+  {"-", '-'},
+  {"\\*", '*'},
+  {"/", '/'},
+  {"\\(", '('},
+  {"\\)", ')'},
+  {"\\)", ')'},
   {"==", TK_EQ},        // equal
+  {"!=", TK_NEQ},
+  {"\\$[a-z0-11]+", TK_REG},
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -87,16 +101,30 @@ static bool make_token(char *e) {
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
-        position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
 
-        switch (rules[i].token_type) {
-          default: TODO();
+        if(nr_token >= 32) {
+            printf("Error: Token numbers overflow!\n");
+            return false;
         }
+
+        switch (rules[i].token_type) {
+          case TK_NOTYPE: position += substr_len; break;
+          default: tokens[nr_token].type = rules[i].token_type; break;
+        }
+
+        substr_len = substr_len >= 32 ? 31 : substr_len;
+
+        position += substr_len;
+
+        strncpy(tokens[nr_token].str, substr_start, substr_len);
+        tokens[nr_token].str[substr_len] = '\0';
+
+        nr_token++;
 
         break;
       }
@@ -111,6 +139,26 @@ static bool make_token(char *e) {
   return true;
 }
 
+word_t eval_expression(bool *success);
+word_t eval_term(bool *success);
+static word_t eval_factor(bool *success);
+static word_t eval_register(const char *reg, bool *success);
+
+static int token_idx = 0;
+
+static Token* current_token() {
+    if(token_idx >= nr_token) return NULL;
+    return &tokens[token_idx];
+}
+
+static bool match_token(int expected_type) {
+    Token *token = current_token();
+    if(token != NULL && token->type == expected_type) {
+        token_idx++;
+        return true;
+    }
+    return false;
+}
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
@@ -119,7 +167,106 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  token_idx = 0;
+  word_t result = eval_expression(success);
 
-  return 0;
+  if(*success && token_idx != nr_token) {
+      printf("Error: never complete\n");
+      *success = false;
+      return 0;
+  }
+
+  return result;
+}
+
+word_t eval_expression(bool *success) {
+    word_t result = eval_term(success);
+    if(!*success) return 0;
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == '+') {
+            token_idx++;
+            word_t right = eval_term(success);
+            if(!*success) return 0;
+            result += right;
+        } else if (token->type == '-') {
+            token_idx++;
+            word_t right = eval_term(success);
+            if(!*success) return 0;
+            result -= right;
+        } else break;
+    }
+
+    return result;
+}
+
+word_t eval_term(bool *success) {
+    word_t result = eval_factor(success);
+    if(!*success) return 0;
+    
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == '*') {
+            token_idx++;
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            result *= right;
+        } else if(token->type == '/') {
+            token_idx++;
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            if(right == 0) {
+                printf("Error: Divided by zero\n");
+                return 0;
+            }
+            result /= right;
+        } else break;
+    }
+
+    return result;
+}
+
+static word_t eval_factor(bool *success) {
+    Token *token = current_token();
+    if(token == NULL) {
+        printf("Error: expected factor\n");
+        *success = false;
+        return 0;
+    }
+
+    switch(token->type) {
+        case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
+        case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
+        case TK_REG:      token_idx++; return eval_register(token->str, success);
+        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
+        case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
+                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
+                          return result;
+        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; return 0;
+    }
+}
+
+static word_t eval_register(const char *reg, bool *success) {
+    *success = true;
+
+    if(reg[0] == '$') reg++;
+
+    for(int i=0; i<MUXDEF(CONFIG_RVE, 16, 32); i++) {
+        if(strcmp(reg, reg_name(i)) == 0) {
+            return gpr(i);
+        }
+    }
+
+    if(strcmp(reg, "pc") == 0) {
+        return cpu.pc;
+    }
+
+    printf("Error: reg error\n");
+    *success = false;
+    return 0;
 }
