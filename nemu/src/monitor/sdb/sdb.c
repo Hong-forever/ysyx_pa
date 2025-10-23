@@ -134,8 +134,10 @@ static int cmd_p(char *args) {
     if(args == NULL) {
         printf("p <expr>\n");
         printf("eg: p 1+2\n");
-        return -1;
+        return 0;
     }
+
+    printf("%s\n", args);
 
     bool success;
     word_t result = expr(args, &success);
