@@ -191,7 +191,7 @@ word_t eval_expression(bool *success) {
         if(token->type == '+') {
             token_idx++;
             word_t right = eval_term(success);
-            printf("expr + right: 0x%08x\n", right);
+            //printf("expr + right: 0x%08x\n", right);
             if(!*success) return 0;
             result += right;
         } else if (token->type == '-') {
@@ -201,14 +201,14 @@ word_t eval_expression(bool *success) {
             result -= right;
         } else break;
     }
-    printf("expr result: 0x%08x\n", result);
+    //printf("expr result: 0x%08x\n", result);
 
     return result;
 }
 
 word_t eval_term(bool *success) {
     word_t result = eval_factor(success);
-    printf("term result: 0x%08x, %d\n", result, *success);
+    //printf("term result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
     
     while(1) {
@@ -232,7 +232,7 @@ word_t eval_term(bool *success) {
         } else break;
     }
 
-    printf("term result: 0x%08x\n", result);
+    //printf("term result: 0x%08x\n", result);
     return result;
 }
 
