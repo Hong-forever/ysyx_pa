@@ -181,6 +181,7 @@ word_t expr(char *e, bool *success) {
 
 word_t eval_expression(bool *success) {
     word_t result = eval_term(success);
+    printf("expr result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
 
     while(1) {
