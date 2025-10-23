@@ -112,10 +112,6 @@ static bool make_token(char *e) {
             return false;
         }
 
-        switch (rules[i].token_type) {
-          case TK_NOTYPE: break;
-          default: tokens[nr_token].type = rules[i].token_type; break;
-        }
 
         substr_len = substr_len >= 32 ? 31 : substr_len;
 
@@ -124,7 +120,10 @@ static bool make_token(char *e) {
         strncpy(tokens[nr_token].str, substr_start, substr_len);
         tokens[nr_token].str[substr_len] = '\0';
 
-        nr_token++;
+        switch (rules[i].token_type) {
+          case TK_NOTYPE: break;
+          default: tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+        }
 
         break;
       }
