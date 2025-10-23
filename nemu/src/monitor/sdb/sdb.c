@@ -59,7 +59,7 @@ static int cmd_si(char *args) {
     char *arg = strtok(args, " ");
     if(arg == NULL) {
         cpu_exec(1);
-        printf("Exe 1 inst\n"); 
+        //printf("Exe 1 inst\n"); 
     } else {
         for(char *p = arg; *p != '\0'; p++) {
             if(!isdigit(*p)) {
@@ -75,13 +75,13 @@ static int cmd_si(char *args) {
         }
 
         cpu_exec((uint64_t)n);
-        printf("Exe %d %s\n", n, n>1?"insts":"inst");
+        //printf("Exe %d %s\n", n, n>1?"insts":"inst");
     }
     
     return 0;
 }
 
-static void info_cmd_print() {
+void info_cmd_print() {
     printf("info <subcommand>\n");
     printf(" r  - print Integer regs status\n");
     printf(" w  - print watching point status\n");
@@ -130,6 +130,27 @@ static int cmd_x(char *args) {
     return 0;
 }
 
+static int cmd_p(char *args) {
+    if(args == NULL) {
+        printf("p <expr>\n");
+        printf("eg: p 1+2\n");
+        return 0;
+    }
+
+    //printf("%s\n", args);
+
+    bool success;
+    word_t result = expr(args, &success);
+
+    if(success) {
+        printf("result: 0x%08x(%u)\n", result, result);
+    } else {
+        printf("Error to evaluate\n");
+    }
+
+    return success ? 0 : -1;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -141,7 +162,7 @@ static struct {
   { "si", "Execute inst step", cmd_si },
   { "info", "Print register or monitoring point information", cmd_info },
   { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
-//  { "p", "Find the value of the expression EXPR", cmd_p },
+  { "p", "Find the value of the expression EXPR", cmd_p },
 //  { "w", "Stop if EXPR changes", cmd_w },
 //  { "d", "Delete the monitor point with serial number N", cmd_d },
 
