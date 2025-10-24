@@ -23,7 +23,7 @@ void engine_start() {
   cpu_exec(-1);
 #else
   /* Receive commands from user. */
-  FILE *fp = fopen("${NEMU_HOME}/tools/gen-expr/input.txt" , "r");
+  FILE *fp = fopen("~/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input.txt" , "r");
   if(fp == NULL) {
       printf("Error to open file\n");
   }
