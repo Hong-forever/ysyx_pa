@@ -15,6 +15,7 @@
 
 #include <cpu/cpu.h>
 #include "../../monitor/sdb/sdb.h"
+#include <ctype.h>
 
 void sdb_mainloop();
 
@@ -36,6 +37,12 @@ void engine_start() {
   for(int i=0; i<1000; i++) {
     int a = fscanf(fp, "%u %[^\n]", &expected, expr_buf);
     assert(a == 2);
+    for(char *p=expr_buf; *p; p++) {
+        if(*p == 'u' && (p == expr_buf || !isalnum(*(p-1)))) {
+            memmove(p, p+1, strlen(p));
+            p--;
+        }
+    }
     
     uint32_t actual = expr(expr_buf, &success);
 

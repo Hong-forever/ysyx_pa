@@ -102,7 +102,7 @@ void gen_char(char c) {
         return;
     }
     buf[buf_pos++] = c;
-    if(c != '(' && c != ')') buf[buf_pos++] = ' ';
+    if(c != '(' && c != ')' && c != 'u') buf[buf_pos++] = ' ';
 }
 
 int main(int argc, char *argv[]) {
