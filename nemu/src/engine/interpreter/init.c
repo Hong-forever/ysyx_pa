@@ -23,7 +23,7 @@ void engine_start() {
   cpu_exec(-1);
 #else
   /* Receive commands from user. */
-  FILE *fp = fopen("../../../tools/gen-expr/input", "r");
+  FILE *fp = fopen("../../../tools/gen-expr/input.txt", "r");
   if(fp == NULL) {
       printf("Error to open file\n");
   }
