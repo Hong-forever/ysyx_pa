@@ -23,7 +23,7 @@ void engine_start() {
   cpu_exec(-1);
 #else
   /* Receive commands from user. */
-  FILE *fp = fopen("/home/hhh/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input.txt" , "r");
+  FILE *fp = fopen("${NEMU_HOME}/tools/gen-expr/input.txt" , "r");
   if(fp == NULL) {
       printf("Error to open file\n");
   }
@@ -34,8 +34,8 @@ void engine_start() {
   uint32_t pass_num = 0;
     
   for(int i=0; i<1000; i++) {
-    int a = fscanf(fp, "%u %[^\n]", &expected, expr_buf);
-    assert(a == 2);
+    int num = fscanf(fp, "%u %[^\n]", &expected, expr_buf);
+    assert(num == 2);
 
     char *src = expr_buf, *dst = expr_buf;
     while(*src) {
