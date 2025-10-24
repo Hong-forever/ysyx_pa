@@ -81,7 +81,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[65536] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -107,7 +107,7 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
-        if(nr_token >= 32) {
+        if(nr_token >= 65536) {
             printf("Error: Token numbers overflow!\n");
             return false;
         }
@@ -143,7 +143,7 @@ word_t eval_term(bool *success);
 static word_t eval_factor(bool *success);
 static word_t eval_register(const char *reg, bool *success);
 
-static int token_idx = 0;
+static uint32_t token_idx = 0;
 
 static Token* current_token() {
     if(token_idx >= nr_token) return NULL;
