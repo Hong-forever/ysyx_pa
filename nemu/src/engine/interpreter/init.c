@@ -31,6 +31,7 @@ void engine_start() {
   char expr_buf[65536];
   uint32_t expected;
   bool success = 0;
+  uint32_t pass_num = 0;
     
   for(int i=0; i<1000; i++) {
     int a = fscanf(fp, "%u %[^\n]", &expected, expr_buf);
@@ -40,6 +41,7 @@ void engine_start() {
 
     if(success && actual == expected) {
         printf("success: %u\n", i);
+        pass_num++;
     } else {
         printf("Error %u\nExpected: %u, Actua: %u\n", i, expected, actual);
         /* assert(0); */
@@ -47,7 +49,7 @@ void engine_start() {
   }
 
   fclose(fp);
-  printf("Pass!\n");
+  printf("Pass %u\n", pass_num);
 
 
   sdb_mainloop();
