@@ -40,7 +40,7 @@ void engine_start() {
     uint32_t actual = expr(expr_buf, &success);
 
     if(success && actual == expected) {
-        //printf("success: %u\n", i);
+        printf("success: %u\n", i);
         pass_num++;
     } else {
         printf("Error %u\nExpected: %u, Actua: %u, %s\n", i, expected, actual,expr_buf);
@@ -49,7 +49,6 @@ void engine_start() {
   }
 
   fclose(fp);
-        printf("%u\n",920615 - (23 - 86) / 1 / 97);
   printf("Pass %u\n", pass_num);
 
 

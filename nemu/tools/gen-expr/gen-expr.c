@@ -66,7 +66,7 @@ void gen_num() {
         return;
     }
     buf_pos += sprintf(buf+buf_pos, "%u", num);
-
+    gen_char('u');
 }
 
 void gen_num_nonzero() {
@@ -76,7 +76,7 @@ void gen_num_nonzero() {
         return;
     }
     buf_pos += sprintf(buf+buf_pos, "%u", num);
-
+    gen_char('u');
 }
 
 void gen_rand_op() {
