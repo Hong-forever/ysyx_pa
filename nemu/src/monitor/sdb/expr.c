@@ -241,13 +241,15 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
+    printf("Enter factor\n");
+
     *success = true;
 
     switch(token->type) {
         case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
         case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
         case TK_REG:      token_idx++; return isa_reg_str2val(token->str, success);
-        case '-':         printf("11\n"); token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
+        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
         case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
                           return result;
