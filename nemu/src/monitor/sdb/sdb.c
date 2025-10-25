@@ -15,7 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
-#include <memory/paddr.h>
+#include <memory/vaddr.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -119,12 +119,12 @@ static int cmd_x(char *args) {
         int n = atoi(arg);
         char *endptr;
         word_t expr = (word_t)strtol(expr_arg, &endptr, 16);
-        if(n <= 0 || *endptr != '\0' || (expr < (word_t)PMEM_LEFT || expr >= (word_t)PMEM_RIGHT)) {
+        if(n <= 0 || *endptr != '\0' || (expr < (word_t)0x80000000 || expr >= (word_t)0x8fffffff)) {
             printf("Please input correctly\n");
             return 0;
         }
         for(int i=0; i<n; i++) {
-            printf("addr-0x%08x --> inst: %08x\n", expr+4*i, paddr_read(expr+4*i, 4));
+            printf("addr-0x%08x --> inst: %08x\n", expr+4*i, vaddr_read(expr+4*i, 4));
         }
     }
     return 0;
