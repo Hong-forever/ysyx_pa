@@ -18,6 +18,7 @@
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
@@ -256,6 +257,7 @@ static word_t eval_factor(bool *success) {
         case TK_HEX_NUM:  token_idx++; result = (word_t)strtoul(token->str, NULL, 16); break;
         case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
         case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
+        case '*':         token_idx++; word_t addr = eval_factor(success); if(!*success) break; result = vaddr_read(addr, 4); break;
         case '(':         token_idx++; word_t res_expr = eval_expression(success); if(!*success) break; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
                           result = res_expr; break;
