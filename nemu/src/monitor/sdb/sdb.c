@@ -81,7 +81,7 @@ static int cmd_si(char *args) {
     return 0;
 }
 
-void info_cmd_print() {
+static void info_cmd_print() {
     printf("info <subcommand>\n");
     printf(" r  - print Integer regs status\n");
     printf(" w  - print watching point status\n");
@@ -162,6 +162,21 @@ static int cmd_w(char *args) {
     return 0;
 }
 
+static int cmd_d(char *args) {
+    char *arg = strtok(args, " ");
+    if(arg == NULL) {
+        printf("Error: should input d <N>\n");
+    }
+    int n = atoi(arg);
+    if(n <= 0 || n >= 32) {
+        printf("Error: Must be a num in [1,31]\n");
+        return 0;
+    }
+
+    free_wp(n);
+    return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -175,7 +190,7 @@ static struct {
   { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
   { "p", "Find the value of the expression EXPR", cmd_p },
   { "w", "Stop if EXPR changes", cmd_w },
-//  { "d", "Delete the monitor point with serial number N", cmd_d },
+  { "d", "Delete the monitor point with serial number N", cmd_d },
 
 };
 

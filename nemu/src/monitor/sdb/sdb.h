@@ -31,7 +31,7 @@ word_t eval_expr(char *e, bool *success);
 
 void init_wp_pool();
 WP *new_wp();
-void free_wp(WP *wp);
+void free_wp(uint32_t N);
 void set_watchpoint(char *expr);
 void check_watchpoint();
 void info_watchpoint();

@@ -41,29 +41,32 @@ WP *new_wp() {
         printf("Error: watchpoint pool full\n");
         return NULL;
     }
-
     WP *wp = free_;
     free_ = free_->next;
-
+    
     wp->next = head;
     head = wp;
 
     return wp;
 }
 
-void free_wp(WP *wp) {
-    if(head == wp) {
-        head = head->next;
-    } else {
-        WP *prev = head;
-        while(prev != NULL && prev->next != wp) {
-            prev = prev->next;
-        }
-
-        if(prev != NULL) {
-            prev->next = wp->next;
-        }
+void free_wp(uint32_t N) {
+    WP *index = head;
+    WP *wp = NULL;
+    WP *prev = head;
+    for(; index != NULL; prev = index, index = index->next) {
+        if(index->NO == N) {
+            wp = index;
+            break;
+        } 
     }
+
+    if(wp == NULL) {
+        printf("Error: no this wp!\n");
+        return ;
+    }
+    
+    prev->next = wp->next;
 
     wp->next = free_;
     free_ = wp;
