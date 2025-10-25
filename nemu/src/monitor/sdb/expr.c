@@ -140,6 +140,8 @@ static bool make_token(char *e) {
 }
 
 static word_t eval_top_term(bool *success);
+static word_t eval_and_term(bool *success);
+static word_t eval_eq_term(bool *success);
 static word_t eval_add_term(bool *success);
 static word_t eval_mul_term(bool *success);
 static word_t eval_factor(bool *success);
@@ -179,7 +181,58 @@ word_t expr(char *e, bool *success) {
 }
 
 static word_t eval_top_term(bool *success) {
-    return eval_add_term(success);
+    return eval_and_term(success);
+}
+
+static word_t eval_and_term(bool *success) {
+    word_t result = eval_eq_term(success);
+    if(!*success) return 0;
+    
+    printf("Enter and\n");
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == TK_LOG_AND) {
+            token_idx++;
+            word_t right = eval_eq_term(success);
+            printf("opnum: %u, &&, right: %u\n", result, right);
+            if(!*success) return 0;
+            result = result && right;
+        } else break;
+    }
+    printf("and result: 0x%08x\n", result);
+
+    return result;
+}
+static word_t eval_eq_term(bool *success) {
+    word_t result = eval_add_term(success);
+    if(!*success) return 0;
+    
+    printf("Enter eq\n");
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == TK_EQ) {
+            token_idx++;
+            word_t right = eval_add_term(success);
+            printf("opnum: %u, ==, right: %u\n", result, right);
+            if(!*success) return 0;
+            result = result == right;
+        } else if (token->type == TK_NEQ) {
+            token_idx++;
+            word_t right = eval_add_term(success);
+            printf("opnum: %u, !=, right: %u\n", result, right);
+            if(!*success) return 0;
+            result = result != right;
+        } else break;
+    }
+    printf("eq result: 0x%08x\n", result);
+
+    return result;
 }
 
 static word_t eval_add_term(bool *success) {
