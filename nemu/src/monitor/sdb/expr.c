@@ -162,7 +162,7 @@ static bool match_token(int expected_type) {
     return false;
 }
 
-word_t expr(char *e, bool *success) {
+word_t eval_expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;

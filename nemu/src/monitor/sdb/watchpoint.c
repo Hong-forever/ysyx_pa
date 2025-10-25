@@ -17,17 +17,6 @@
 
 #define NR_WP 32
 
-typedef struct watchpoint {
-  int NO;
-  struct watchpoint *next;
-  char expr[128];
-  uint32_t value;
-  uint32_t last_value;
-  int hit_count;
-  /* TODO: Add more members if necessary */
-
-} WP;
-
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
 
@@ -37,8 +26,8 @@ void init_wp_pool() {
     wp_pool[i].NO = i;
     wp_pool[i].next = (i == NR_WP - 1 ? NULL : &wp_pool[i + 1]);
     wp_pool[i].expr[0] = '\0';
-    wp_pool[i].value = 0;
-    wp_pool[i].last_value = 0;
+    wp_pool[i].new_value = 0;
+    wp_pool[i].old_value = 0;
     wp_pool[i].hit_count= 0;
   }
 
@@ -47,5 +36,76 @@ void init_wp_pool() {
 }
 
 
-/* TODO: Implement the functionality of watchpoint */
+WP *new_wp() {
+    if(free_ == NULL) {
+        printf("Error: watchpoint pool full\n");
+        return NULL;
+    }
 
+    WP *wp = free_;
+    free_ = free_->next;
+
+    wp->next = head;
+    head = wp;
+
+    return wp;
+}
+
+void free_wp(WP *wp) {
+    if(head == wp) {
+        head = head->next;
+    } else {
+        WP *prev = head;
+        while(prev != NULL && prev->next != wp) {
+            prev = prev->next;
+        }
+
+        if(prev != NULL) {
+            prev->next = wp->next;
+        }
+    }
+
+    wp->next = free_;
+    free_ = wp;
+}
+
+void set_watchpoint(char *expr) {
+    WP *wp = new_wp();
+    if(wp == NULL) {
+        printf("Error to set wp\n");
+        return ;
+    }
+
+    bool success = false;
+
+    strncpy(wp->expr, expr, sizeof(wp->expr)-1);
+    wp->old_value = eval_expr(expr, &success);
+    assert(success);
+    wp->new_value = wp->old_value;
+    wp->hit_count = 0;
+
+    printf("Set wp: #%d: %s\n", wp->NO, expr);
+    return ;
+}
+
+void check_watchpoint() {
+    WP *wp = head;
+    bool success = false;
+    uint32_t times = 0;
+
+    while(wp != NULL) {
+        wp->new_value = eval_expr(wp->expr, &success);
+        assert(success);
+        if(wp->new_value != wp->old_value) {
+            printf("Wp #%d ack: %s\n", wp->NO, wp->expr);
+            printf("Old: 0x%08x, New: 0x%08x\n", wp->old_value, wp->new_value);
+            wp->old_value = wp->new_value;
+            wp->hit_count++;
+            times++;
+        }
+        wp = wp->next;
+    }
+    if(times != 0) {
+        nemu_state.state = NEMU_STOP;
+    }
+}
