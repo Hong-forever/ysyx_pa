@@ -139,8 +139,11 @@ static bool make_token(char *e) {
   return true;
 }
 
-word_t eval_expression(bool *success);
-word_t eval_term(bool *success);
+static word_t eval_op_res(word_t opnum, bool *success);
+static word_t eval_top_term(bool *success);
+static word_t eval_and_term(bool *success);
+static word_t eval_add_term(bool *success);
+static word_t eval_mul_term(bool *success);
 static word_t eval_factor(bool *success);
 
 static uint32_t token_idx = 0;
@@ -167,7 +170,7 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   token_idx = 0;
-  word_t result = eval_expression(success);
+  word_t result = eval_top_term(success);
   if(*success && token_idx != nr_token) {
       printf("Error: never complete\n");
       *success = false;
@@ -177,65 +180,75 @@ word_t expr(char *e, bool *success) {
   return result;
 }
 
-word_t eval_expression(bool *success) {
-    word_t result = eval_term(success);
+static word_t eval_top_term(bool *success) {
+    return eval_and_term(success);
+}
+
+static word_t eval_and_term(bool *success) {
+    word_t result = eval_add_term(success);
     if(!*success) return 0;
 
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
-
-        printf("Exe %c\n", token->type);
-
-        if(token->type == '+') {
-            token_idx++;
-            word_t right = eval_term(success);
-            printf("expr + right: 0x%08x\n", right);
-            if(!*success) return 0;
-            result += right;
-        } else if (token->type == '-') {
-            token_idx++;
-            word_t right = eval_term(success);
-            printf("expr - right: 0x%08x\n", right);
-            if(!*success) return 0;
-            result -= right;
+        if(token->type == TK_EQ || token->type == TK_NEQ || token->type == TK_LOG_AND) {
+            result = eval_op_res(result, success);
         } else break;
     }
-    printf("expr result: 0x%08x\n", result);
 
     return result;
 }
 
-word_t eval_term(bool *success) {
+static word_t eval_add_term(bool *success) {
+    word_t result = eval_mul_term(success);
+    if(!*success) return 0;
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+        if(token->type == '+' || token->type == '-') {
+            result = eval_op_res(result, success);
+        } else break;
+    }
+
+    return result;
+}
+
+static word_t eval_mul_term(bool *success) {
     word_t result = eval_factor(success);
     if(!*success) return 0;
 
-    printf("Enter term\n");
-    
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
         
-        printf("Exe %c\n", token->type);
-
-        if(token->type == '*') {
-            token_idx++;
-            word_t right = eval_factor(success);
-            if(!*success) return 0;
-            result *= right;
-        } else if(token->type == '/') {
-            token_idx++;
-            word_t right = eval_factor(success);
-            if(!*success) return 0;
-            if(right == 0) {
-                printf("Error: Divided by zero\n");
-                return 0;
-            }
-            result /= right;
+        if(token->type == '*' || token->type == '/') {
+            result = eval_op_res(result, success);
         } else break;
     }
 
-    printf("term result: 0x%08x\n", result);
+    return result;
+}
+
+static word_t eval_op_res(word_t opnum, bool *success) {
+    Token *token = current_token();
+    
+    token_idx++;
+    word_t result = 0;
+    word_t right = eval_factor(success);
+    if(!*success) return 0;
+
+    switch(token->type) {
+        case '*': result = opnum * right; break;
+        case '/': if(right == 0) {printf("Error to divide by zero\n"); return 0;} result = opnum / right; break;
+        case '+': result = opnum + right; break;
+        case '-': result = opnum - right; break;
+        case TK_EQ: result = opnum == right; break;
+        case TK_NEQ: result = opnum != right; break;
+        case TK_LOG_AND: result = opnum && right; break;
+        default: result = 0;
+    }
+
     return result;
 }
 
@@ -247,8 +260,6 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
-    printf("Enter factor\n");
-
     word_t result = 0;
 
     *success = true;
@@ -259,14 +270,12 @@ static word_t eval_factor(bool *success) {
         case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
         case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
         case '*':         token_idx++; word_t addr = eval_factor(success); if(!*success) break; result = vaddr_read(addr, 4); break;
-        case '(':         token_idx++; word_t res_expr = eval_expression(success); if(!*success) break; 
+        case '(':         token_idx++; word_t res_expr = eval_add_term(success); if(!*success) break; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
                           result = res_expr; break;
         default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
     }
     
-    printf("factor result: 0x%08x\n", result);
-
     return result;
 }
 
