@@ -112,19 +112,20 @@ static int cmd_info(char *args) {
 
 static int cmd_x(char *args) {
     char *arg = strtok(args, " ");
-    char *expr_arg = strtok(NULL, " ");
+    char *expr_arg = strtok(NULL, "");
+    bool success = 0;
     if(arg == NULL || expr_arg == NULL) {
         printf("Error: Please input: x <N> <EXPR>\n");
     } else {
+
         int n = atoi(arg);
-        char *endptr;
-        word_t expr = (word_t)strtol(expr_arg, &endptr, 16);
-        if(n <= 0 || *endptr != '\0' || (expr < (word_t)0x80000000 || expr >= (word_t)0x87ffffff)) {
-            printf("Please input correctly\n");
-            return 0;
+        word_t expr_res = expr(expr_arg, &success);
+        if(!success) {
+            printf("expr error\n");
         }
+
         for(int i=0; i<n; i++) {
-            printf("addr-0x%08x --> inst: %08x\n", expr+4*i, vaddr_read(expr+4*i, 4));
+            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, vaddr_read(expr_res+4*i, 4));
         }
     }
     return 0;
