@@ -14,18 +14,18 @@
 ***************************************************************************************/
 
 #include <isa.h>
-#include "../../isa/riscv32/local-include/reg.h"
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
   TK_NEQ,
+  TK_LOG_AND,
   TK_NUM,
   TK_HEX_NUM,
-  TK_NEG,
   TK_REG,
   /* TODO: Add more token types */
 
@@ -44,14 +44,15 @@ static struct rule {
   {"0x[0-9a-fA-F]+", TK_HEX_NUM},
   {"[0-9]+", TK_NUM},
   {"\\+", '+'},         // plus
-  {"-", '-'},
-  {"\\*", '*'},
+  {"-", '-'},           // minus or neg
+  {"\\*", '*'},         // mul or deref
   {"/", '/'},
   {"\\(", '('},
   {"\\)", ')'},
   {"\\)", ')'},
   {"==", TK_EQ},        // equal
   {"!=", TK_NEQ},
+  {"&&", TK_LOG_AND},
   {"\\$[a-z0-11]+", TK_REG},
 };
 
@@ -141,7 +142,6 @@ static bool make_token(char *e) {
 word_t eval_expression(bool *success);
 word_t eval_term(bool *success);
 static word_t eval_factor(bool *success);
-static word_t eval_register(const char *reg, bool *success);
 
 static uint32_t token_idx = 0;
 
@@ -179,39 +179,44 @@ word_t expr(char *e, bool *success) {
 
 word_t eval_expression(bool *success) {
     word_t result = eval_term(success);
-    //printf("expr result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
 
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
 
+        printf("Exe %c\n", token->type);
+
         if(token->type == '+') {
             token_idx++;
             word_t right = eval_term(success);
-            //printf("expr + right: 0x%08x\n", right);
+            printf("expr + right: 0x%08x\n", right);
             if(!*success) return 0;
             result += right;
         } else if (token->type == '-') {
             token_idx++;
             word_t right = eval_term(success);
+            printf("expr - right: 0x%08x\n", right);
             if(!*success) return 0;
             result -= right;
         } else break;
     }
-    //printf("expr result: 0x%08x\n", result);
+    printf("expr result: 0x%08x\n", result);
 
     return result;
 }
 
 word_t eval_term(bool *success) {
     word_t result = eval_factor(success);
-    //printf("term result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
+
+    printf("Enter term\n");
     
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
+        
+        printf("Exe %c\n", token->type);
 
         if(token->type == '*') {
             token_idx++;
@@ -230,7 +235,7 @@ word_t eval_term(bool *success) {
         } else break;
     }
 
-    //printf("term result: 0x%08x\n", result);
+    printf("term result: 0x%08x\n", result);
     return result;
 }
 
@@ -242,36 +247,26 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
+    printf("Enter factor\n");
+
+    word_t result = 0;
+
     *success = true;
 
     switch(token->type) {
-        case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
-        case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
-        case TK_REG:      token_idx++; return eval_register(token->str, success);
-        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
-        case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
-                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
-                          return result;
-        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; return 0;
+        case TK_NUM:      token_idx++; result = (word_t)atoi(token->str); break;
+        case TK_HEX_NUM:  token_idx++; result = (word_t)strtoul(token->str, NULL, 16); break;
+        case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
+        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
+        case '*':         token_idx++; word_t addr = eval_factor(success); if(!*success) break; result = vaddr_read(addr, 4); break;
+        case '(':         token_idx++; word_t res_expr = eval_expression(success); if(!*success) break; 
+                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
+                          result = res_expr; break;
+        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
     }
+    
+    printf("factor result: 0x%08x\n", result);
+
+    return result;
 }
 
-static word_t eval_register(const char *reg, bool *success) {
-    *success = true;
-
-    if(reg[0] == '$') reg++;
-
-    for(int i=0; i<MUXDEF(CONFIG_RVE, 16, 32); i++) {
-        if(strcmp(reg, reg_name(i)) == 0) {
-            return gpr(i);
-        }
-    }
-
-    if(strcmp(reg, "pc") == 0) {
-        return cpu.pc;
-    }
-
-    printf("Error: reg error\n");
-    *success = false;
-    return 0;
-}
