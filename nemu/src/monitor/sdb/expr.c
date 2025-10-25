@@ -236,7 +236,7 @@ static word_t eval_op_res(word_t opnum, bool *success) {
     token_idx++;
     word_t result = 0;
     word_t right = eval_factor(success);
-    printf("right: %u, type: %c\n", right, token->type);
+    printf("opnum: %u, type: %c, right: %u\n", opnum, token->type, right);
     if(!*success) return 0;
 
     switch(token->type) {
