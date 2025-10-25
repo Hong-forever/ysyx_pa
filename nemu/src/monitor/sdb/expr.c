@@ -192,6 +192,7 @@ static word_t eval_and_term(bool *success) {
         Token *token = current_token();
         if(token == NULL) break;
         if(token->type == TK_EQ || token->type == TK_NEQ || token->type == TK_LOG_AND) {
+            token_idx++;
             result = eval_add_term(success);
         } else break;
     }
@@ -207,6 +208,7 @@ static word_t eval_add_term(bool *success) {
         Token *token = current_token();
         if(token == NULL) break;
         if(token->type == '+' || token->type == '-') {
+            token_idx++;
             result = eval_mul_term(success);
         } else break;
     }
@@ -223,6 +225,7 @@ static word_t eval_mul_term(bool *success) {
         if(token == NULL) break;
         
         if(token->type == '*' || token->type == '/') {
+            token_idx++;
             result = eval_op_res(result, success);
         } else break;
     }
@@ -233,7 +236,6 @@ static word_t eval_mul_term(bool *success) {
 static word_t eval_op_res(word_t opnum, bool *success) {
     Token *token = current_token();
     
-    token_idx++;
     word_t result = 0;
     word_t right = eval_factor(success);
     printf("opnum: %u, type: %c, right: %u\n", opnum, token->type, right);
