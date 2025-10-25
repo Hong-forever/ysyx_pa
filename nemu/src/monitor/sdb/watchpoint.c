@@ -109,3 +109,18 @@ void check_watchpoint() {
         nemu_state.state = NEMU_STOP;
     }
 }
+
+void info_watchpoint() {
+    if(head == NULL) {
+        printf("No watchpoit!\n");
+        return ;
+    }
+
+    printf("NUM     EXPR    VALUE       HIT\n");
+    WP *index = head;
+    while(index != NULL) {
+        printf("#%d     %s      %u      %d\n", index->NO, index->expr, index->new_value, index->hit_count);
+        index = index->next;
+    }
+    return ;
+}

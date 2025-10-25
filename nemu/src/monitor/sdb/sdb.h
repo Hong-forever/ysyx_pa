@@ -34,5 +34,6 @@ WP *new_wp();
 void free_wp(WP *wp);
 void set_watchpoint(char *expr);
 void check_watchpoint();
+void info_watchpoint();
 
 #endif

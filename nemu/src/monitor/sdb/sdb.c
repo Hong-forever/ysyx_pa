@@ -99,7 +99,7 @@ static int cmd_info(char *args) {
         } else {
             switch(cmd_char) {
                 case 'r': isa_reg_display(); break;
-                case 'w': break;
+                case 'w': info_watchpoint(); break;
                 default : 
                     printf("---Please input correct cmd---\n");
                     info_cmd_print();
