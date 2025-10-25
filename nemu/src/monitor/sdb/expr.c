@@ -141,7 +141,6 @@ static bool make_token(char *e) {
 word_t eval_expression(bool *success);
 word_t eval_term(bool *success);
 static word_t eval_factor(bool *success);
-static word_t eval_register(const char *reg, bool *success);
 
 static uint32_t token_idx = 0;
 
@@ -247,7 +246,7 @@ static word_t eval_factor(bool *success) {
     switch(token->type) {
         case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
         case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
-        case TK_REG:      token_idx++; return eval_register(token->str, success);
+        case TK_REG:      token_idx++; return isa_reg_str2val(token->str, success);
         case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
         case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
@@ -256,22 +255,3 @@ static word_t eval_factor(bool *success) {
     }
 }
 
-static word_t eval_register(const char *reg, bool *success) {
-    *success = true;
-
-    if(reg[0] == '$') reg++;
-
-    for(int i=0; i<MUXDEF(CONFIG_RVE, 16, 32); i++) {
-        if(strcmp(reg, reg_name(i)) == 0) {
-            return gpr(i);
-        }
-    }
-
-    if(strcmp(reg, "pc") == 0) {
-        return cpu.pc;
-    }
-
-    printf("Error: reg error\n");
-    *success = false;
-    return 0;
-}
