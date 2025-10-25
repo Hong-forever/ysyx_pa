@@ -192,7 +192,7 @@ static word_t eval_and_term(bool *success) {
         Token *token = current_token();
         if(token == NULL) break;
         if(token->type == TK_EQ || token->type == TK_NEQ || token->type == TK_LOG_AND) {
-            result = eval_op_res(result, success);
+            result = eval_add_term(success);
         } else break;
     }
 
@@ -207,7 +207,7 @@ static word_t eval_add_term(bool *success) {
         Token *token = current_token();
         if(token == NULL) break;
         if(token->type == '+' || token->type == '-') {
-            result = eval_op_res(result, success);
+            result = eval_mul_term(success);
         } else break;
     }
 
