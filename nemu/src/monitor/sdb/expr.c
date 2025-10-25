@@ -274,7 +274,7 @@ static word_t eval_factor(bool *success) {
         case '(':         token_idx++; word_t res_expr = eval_add_term(success); if(!*success) break; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
                           result = res_expr; break;
-        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
+        default:          break;
     }
     
     return result;
