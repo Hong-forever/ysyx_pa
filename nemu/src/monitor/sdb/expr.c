@@ -193,6 +193,7 @@ word_t eval_expression(bool *success) {
         } else if (token->type == '-') {
             token_idx++;
             word_t right = eval_term(success);
+            printf("expr + right: 0x%08x\n", right);
             if(!*success) return 0;
             result -= right;
         } else break;
