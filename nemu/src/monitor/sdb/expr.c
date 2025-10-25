@@ -180,11 +180,11 @@ word_t eval_expression(bool *success) {
     //printf("expr result: 0x%08x, %d\n", result, *success);
     if(!*success) return 0;
 
-    printf("Enter expr\n");
-
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
+
+        printf("Exe %c\n", token->type);
 
         if(token->type == '+') {
             token_idx++;
@@ -215,6 +215,8 @@ word_t eval_term(bool *success) {
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
+        
+        printf("Exe %c\n", token->type);
 
         if(token->type == '*') {
             token_idx++;
