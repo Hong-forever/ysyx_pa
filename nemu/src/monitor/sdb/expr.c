@@ -189,10 +189,10 @@ static word_t eval_term(bool *success) {
         printf("Exe %c\n", token->type);
 
         switch(token->type) {
-            case '*': result = eval_op_term('*', success); break;
-            case '/': result = eval_op_term('/', success); break;
-            case '+': result = eval_op_term('+', success); break;
-            case '-': result = eval_op_term('-', success); break;
+            case '*': result *= eval_op_term('*', success); break;
+            case '/': result /= eval_op_term('/', success); break;
+            case '+': result += eval_op_term('+', success); break;
+            case '-': result -= eval_op_term('-', success); break;
             default : break;
         }
     }
