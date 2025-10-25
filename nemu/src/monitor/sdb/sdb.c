@@ -168,8 +168,8 @@ static int cmd_d(char *args) {
         printf("Error: should input d <N>\n");
     }
     int n = atoi(arg);
-    if(n <= 0 || n >= 32) {
-        printf("Error: Must be a num in [1,31]\n");
+    if(n < 0 || n >= 32) {
+        printf("Error: Must be a num in [0,31]\n");
         return 0;
     }
 
