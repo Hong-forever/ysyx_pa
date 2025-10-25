@@ -141,6 +141,7 @@ static bool make_token(char *e) {
 
 static word_t eval_term(bool *success);
 static word_t eval_factor(bool *success);
+static word_t eval_op_term(char c, bool *success);
 
 static uint32_t token_idx = 0;
 
@@ -187,21 +188,34 @@ static word_t eval_term(bool *success) {
         
         printf("Exe %c\n", token->type);
 
-        token_idx++;
-        word_t right = eval_factor(success);
-        if(!*success) return 0;
-        printf("right: 0x%08x\n", right);
-
         switch(token->type) {
-            case '*': result *= right; break;
-            case '/': if(right == 0) {printf("Error: Divided by zero\n"); return 0;} result /= right; break;
-            case '+': result += right; break;
-            case '-': result -= right; break;
+            case '*': result = eval_op_term('*', success); break;
+            case '/': result = eval_op_term('/', success); break;
+            case '+': result = eval_op_term('+', success); break;
+            case '-': result = eval_op_term('-', success); break;
             default : break;
         }
     }
 
     printf("term result: 0x%08x\n", result);
+    return result;
+}
+
+static word_t eval_op_term(char c, bool *success) {
+    token_idx++;
+    word_t result = 0;
+    word_t right = eval_factor(success);
+    if(!*success) return 0;
+    printf("right: 0x%08x\n", right);
+
+    switch(c) {
+        case '*': result *= right; break;
+        case '/': if(right == 0) {printf("Error: Divided by zero\n"); return 0;} result /= right; break;
+        case '+': result += right; break;
+        case '-': result -= right; break;
+        default : break;
+    }
+
     return result;
 }
 
