@@ -193,7 +193,7 @@ word_t eval_expression(bool *success) {
         } else if (token->type == '-') {
             token_idx++;
             word_t right = eval_term(success);
-            printf("expr + right: 0x%08x\n", right);
+            printf("expr - right: 0x%08x\n", right);
             if(!*success) return 0;
             result -= right;
         } else break;
@@ -247,7 +247,7 @@ static word_t eval_factor(bool *success) {
         case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
         case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
         case TK_REG:      token_idx++; return isa_reg_str2val(token->str, success);
-        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
+        case '-':         printf("11\n"); token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
         case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
                           return result;
