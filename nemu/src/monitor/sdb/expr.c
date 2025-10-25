@@ -185,28 +185,28 @@ static word_t eval_top_term(bool *success) {
 static word_t eval_add_term(bool *success) {
     word_t result = eval_mul_term(success);
     if(!*success) return 0;
+    
+    printf("Enter add\n");
 
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
 
-        printf("Exe %c\n", token->type);
-
         if(token->type == '+') {
             token_idx++;
             word_t right = eval_mul_term(success);
-            printf("expr + right: 0x%08x\n", right);
+            printf("opnum: %u, +, right: %u\n", result, right);
             if(!*success) return 0;
             result += right;
         } else if (token->type == '-') {
             token_idx++;
             word_t right = eval_mul_term(success);
-            printf("expr - right: 0x%08x\n", right);
+            printf("opnum: %u, -, right: %u\n", result, right);
             if(!*success) return 0;
             result -= right;
         } else break;
     }
-    printf("expr result: 0x%08x\n", result);
+    printf("add result: 0x%08x\n", result);
 
     return result;
 }
@@ -215,18 +215,17 @@ static word_t eval_mul_term(bool *success) {
     word_t result = eval_factor(success);
     if(!*success) return 0;
 
-    printf("Enter term\n");
-    
+    printf("Enter mul\n");
+
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
         
-        printf("Exe %c\n", token->type);
-
         if(token->type == '*') {
             token_idx++;
             word_t right = eval_factor(success);
             if(!*success) return 0;
+            printf("opnum: %u, *, right: %u\n", result, right);
             result *= right;
         } else if(token->type == '/') {
             token_idx++;
@@ -236,11 +235,12 @@ static word_t eval_mul_term(bool *success) {
                 printf("Error: Divided by zero\n");
                 return 0;
             }
+            printf("opnum: %u, /, right: %u\n", result, right);
             result /= right;
         } else break;
     }
 
-    printf("term result: 0x%08x\n", result);
+    printf("mul result: 0x%08x\n", result);
     return result;
 }
 
