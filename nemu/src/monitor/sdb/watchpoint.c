@@ -66,9 +66,13 @@ void free_wp(uint32_t N) {
         return ;
     }
 
-    printf("Success del #%d wp\n", N);
-    
-    prev->next = wp->next;
+    printf("Success del #%d watchpoint\n", N);
+
+    if(wp == head) {
+        head = wp->next;
+    } else {
+        prev->next = wp->next;
+    }
 
     wp->next = free_;
     free_ = wp;
