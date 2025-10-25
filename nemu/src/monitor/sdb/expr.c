@@ -262,6 +262,8 @@ static word_t eval_factor(bool *success) {
     }
 
     word_t result = 0;
+    
+    printf("factor: %c\n", token->type);
 
     *success = true;
 
