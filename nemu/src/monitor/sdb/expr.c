@@ -249,17 +249,23 @@ static word_t eval_factor(bool *success) {
 
     printf("Enter factor\n");
 
+    word_t result = 0;
+
     *success = true;
 
     switch(token->type) {
-        case TK_NUM:      token_idx++; return (word_t)atoi(token->str); 
-        case TK_HEX_NUM:  token_idx++; return (word_t)strtoul(token->str, NULL, 16);
-        case TK_REG:      token_idx++; return isa_reg_str2val(token->str, success);
-        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) return 0; return -value;
-        case '(':         token_idx++; word_t result = eval_expression(success); if(!*success) return 0; 
-                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; return 0;}
-                          return result;
-        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; return 0;
+        case TK_NUM:      token_idx++; result = (word_t)atoi(token->str); break;
+        case TK_HEX_NUM:  token_idx++; result = (word_t)strtoul(token->str, NULL, 16); break;
+        case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
+        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
+        case '(':         token_idx++; word_t res_expr = eval_expression(success); if(!*success) break; 
+                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
+                          result = res_expr; break;
+        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
     }
+    
+    printf("factor result: 0x%08x\n", result);
+
+    return result;
 }
 
