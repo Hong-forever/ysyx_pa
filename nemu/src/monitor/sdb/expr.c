@@ -139,9 +139,7 @@ static bool make_token(char *e) {
   return true;
 }
 
-static word_t eval_op_res(word_t opnum, bool *success);
 static word_t eval_top_term(bool *success);
-static word_t eval_and_term(bool *success);
 static word_t eval_add_term(bool *success);
 static word_t eval_mul_term(bool *success);
 static word_t eval_factor(bool *success);
@@ -181,23 +179,7 @@ word_t expr(char *e, bool *success) {
 }
 
 static word_t eval_top_term(bool *success) {
-    return eval_and_term(success);
-}
-
-static word_t eval_and_term(bool *success) {
-    word_t result = eval_add_term(success);
-    if(!*success) return 0;
-
-    while(1) {
-        Token *token = current_token();
-        if(token == NULL) break;
-        if(token->type == TK_EQ || token->type == TK_NEQ || token->type == TK_LOG_AND) {
-            token_idx++;
-            result = eval_add_term(success);
-        } else break;
-    }
-
-    return result;
+    return eval_add_term(success);
 }
 
 static word_t eval_add_term(bool *success) {
@@ -207,11 +189,24 @@ static word_t eval_add_term(bool *success) {
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
-        if(token->type == '+' || token->type == '-') {
+
+        printf("Exe %c\n", token->type);
+
+        if(token->type == '+') {
             token_idx++;
-            result = eval_mul_term(success);
+            word_t right = eval_mul_term(success);
+            printf("expr + right: 0x%08x\n", right);
+            if(!*success) return 0;
+            result += right;
+        } else if (token->type == '-') {
+            token_idx++;
+            word_t right = eval_mul_term(success);
+            printf("expr - right: 0x%08x\n", right);
+            if(!*success) return 0;
+            result -= right;
         } else break;
     }
+    printf("expr result: 0x%08x\n", result);
 
     return result;
 }
@@ -220,38 +215,32 @@ static word_t eval_mul_term(bool *success) {
     word_t result = eval_factor(success);
     if(!*success) return 0;
 
+    printf("Enter term\n");
+    
     while(1) {
         Token *token = current_token();
         if(token == NULL) break;
         
-        if(token->type == '*' || token->type == '/') {
+        printf("Exe %c\n", token->type);
+
+        if(token->type == '*') {
             token_idx++;
-            result = eval_op_res(result, success);
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            result *= right;
+        } else if(token->type == '/') {
+            token_idx++;
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            if(right == 0) {
+                printf("Error: Divided by zero\n");
+                return 0;
+            }
+            result /= right;
         } else break;
     }
 
-    return result;
-}
-
-static word_t eval_op_res(word_t opnum, bool *success) {
-    Token *token = current_token();
-    
-    word_t result = 0;
-    word_t right = eval_factor(success);
-    printf("opnum: %u, type: %c, right: %u\n", opnum, token->type, right);
-    if(!*success) return 0;
-
-    switch(token->type) {
-        case '*': result = opnum * right; break;
-        case '/': if(right == 0) {printf("Error to divide by zero\n"); return 0;} result = opnum / right; break;
-        case '+': result = opnum + right; break;
-        case '-': result = opnum - right; break;
-        case TK_EQ: result = opnum == right; break;
-        case TK_NEQ: result = opnum != right; break;
-        case TK_LOG_AND: result = opnum && right; break;
-        default: result = 0;
-    }
-
+    printf("term result: 0x%08x\n", result);
     return result;
 }
 
@@ -263,9 +252,9 @@ static word_t eval_factor(bool *success) {
         return 0;
     }
 
+    printf("Enter factor\n");
+
     word_t result = 0;
-    
-    printf("factor: %c\n", token->type);
 
     *success = true;
 
@@ -278,9 +267,11 @@ static word_t eval_factor(bool *success) {
         case '(':         token_idx++; word_t res_expr = eval_add_term(success); if(!*success) break; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
                           result = res_expr; break;
-        default:          break;
+        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
     }
     
+    printf("factor result: 0x%08x\n", result);
+
     return result;
 }
 
