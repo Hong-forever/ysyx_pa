@@ -27,8 +27,6 @@ enum {
   TK_NUM,
   TK_HEX_NUM,
   TK_REG,
-  /* TODO: Add more token types */
-
 };
 
 static struct rule {
@@ -162,7 +160,7 @@ static bool match_token(int expected_type) {
     return false;
 }
 
-word_t expr(char *e, bool *success) {
+word_t eval_expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
@@ -317,7 +315,7 @@ static word_t eval_factor(bool *success) {
         case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
         case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
         case '*':         token_idx++; word_t addr = eval_factor(success); if(!*success) break; result = vaddr_read(addr, 4); break;
-        case '(':         token_idx++; word_t res_expr = eval_add_term(success); if(!*success) break; 
+        case '(':         token_idx++; word_t res_expr = eval_top_term(success); if(!*success) break; 
                           if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
                           result = res_expr; break;
         default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;

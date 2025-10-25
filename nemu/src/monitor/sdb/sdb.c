@@ -81,7 +81,7 @@ static int cmd_si(char *args) {
     return 0;
 }
 
-void info_cmd_print() {
+static void info_cmd_print() {
     printf("info <subcommand>\n");
     printf(" r  - print Integer regs status\n");
     printf(" w  - print watching point status\n");
@@ -99,7 +99,7 @@ static int cmd_info(char *args) {
         } else {
             switch(cmd_char) {
                 case 'r': isa_reg_display(); break;
-                case 'w': break;
+                case 'w': info_watchpoint(); break;
                 default : 
                     printf("---Please input correct cmd---\n");
                     info_cmd_print();
@@ -113,13 +113,13 @@ static int cmd_info(char *args) {
 static int cmd_x(char *args) {
     char *arg = strtok(args, " ");
     char *expr_arg = strtok(NULL, "");
-    bool success = 0;
+    bool success = false;
     if(arg == NULL || expr_arg == NULL) {
         printf("Error: Please input: x <N> <EXPR>\n");
     } else {
 
         int n = atoi(arg);
-        word_t expr_res = expr(expr_arg, &success);
+        word_t expr_res = eval_expr(expr_arg, &success);
         if(!success) {
             printf("expr error\n");
         }
@@ -141,7 +141,7 @@ static int cmd_p(char *args) {
     //printf("%s\n", args);
 
     bool success;
-    word_t result = expr(args, &success);
+    word_t result = eval_expr(args, &success);
 
     if(success) {
         printf("result: 0x%08x(%u)\n", result, result);
@@ -150,6 +150,31 @@ static int cmd_p(char *args) {
     }
 
     return success ? 0 : -1;
+}
+
+static int cmd_w(char *args) {
+    if(args == NULL) {
+        printf("Need expr to be a wp\n");
+        return 0;
+    }
+
+    set_watchpoint(args);
+    return 0;
+}
+
+static int cmd_d(char *args) {
+    char *arg = strtok(args, " ");
+    if(arg == NULL) {
+        printf("Error: should input d <N>\n");
+    }
+    int n = atoi(arg);
+    if(n < 0 || n >= 32) {
+        printf("Error: Must be a num in [0,31]\n");
+        return 0;
+    }
+
+    free_wp(n);
+    return 0;
 }
 
 static struct {
@@ -164,11 +189,8 @@ static struct {
   { "info", "Print register or monitoring point information", cmd_info },
   { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
   { "p", "Find the value of the expression EXPR", cmd_p },
-//  { "w", "Stop if EXPR changes", cmd_w },
-//  { "d", "Delete the monitor point with serial number N", cmd_d },
-
-
-  /* TODO: Add more commands */
+  { "w", "Stop if EXPR changes", cmd_w },
+  { "d", "Delete the monitor point with serial number N", cmd_d },
 
 };
 
