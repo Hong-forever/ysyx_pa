@@ -65,6 +65,8 @@ void free_wp(uint32_t N) {
         printf("Error: no this wp!\n");
         return ;
     }
+
+    printf("Success del #%d wp\n", N);
     
     prev->next = wp->next;
 
