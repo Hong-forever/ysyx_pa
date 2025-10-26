@@ -45,13 +45,18 @@ $(OBJ_DIR)/%.o: %.cc
 
 # Some convenient rules
 
-.PHONY: app clean
+.PHONY: app clean count count-no-empty
 
 app: $(BINARY)
 
 $(BINARY):: $(OBJS) $(ARCHIVES)
 	@echo + LD $@
 	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(LIBS)
+
+count:
+	find $(NEMU_HOME) -name "*.[ch]" | xargs cat | wc -l
+count-no-empty:
+	find $(NEMU_HOME) -name "*.[ch]" | xargs cat | grep -v '^[[:space:]]*$$' | wc -l 
 
 clean:
 	-rm -rf $(BUILD_DIR)
