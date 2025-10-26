@@ -14,17 +14,19 @@
 ***************************************************************************************/
 
 #include <isa.h>
-
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
-
-  /* TODO: Add more token types */
-
+  TK_NEQ,
+  TK_LOG_AND,
+  TK_NUM,
+  TK_HEX_NUM,
+  TK_REG,
 };
 
 static struct rule {
@@ -37,8 +39,19 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+  {"0x[0-9a-fA-F]+", TK_HEX_NUM},
+  {"[0-9]+", TK_NUM},
   {"\\+", '+'},         // plus
+  {"-", '-'},           // minus or neg
+  {"\\*", '*'},         // mul or deref
+  {"/", '/'},
+  {"\\(", '('},
+  {"\\)", ')'},
+  {"\\)", ')'},
   {"==", TK_EQ},        // equal
+  {"!=", TK_NEQ},
+  {"&&", TK_LOG_AND},
+  {"\\$[a-z0-11]+", TK_REG},
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -67,7 +80,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[65536] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -87,15 +100,28 @@ static bool make_token(char *e) {
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
-        position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
 
+        if(nr_token >= 65536) {
+            printf("Error: Token numbers overflow!\n");
+            return false;
+        }
+
+
+        substr_len = substr_len >= 32 ? 31 : substr_len;
+
+        position += substr_len;
+
+        strncpy(tokens[nr_token].str, substr_start, substr_len);
+        tokens[nr_token].str[substr_len] = '\0';
+
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE: break;
+          default: tokens[nr_token].type = rules[i].token_type; nr_token++; break;
         }
 
         break;
@@ -111,15 +137,192 @@ static bool make_token(char *e) {
   return true;
 }
 
+static word_t eval_top_term(bool *success);
+static word_t eval_and_term(bool *success);
+static word_t eval_eq_term(bool *success);
+static word_t eval_add_term(bool *success);
+static word_t eval_mul_term(bool *success);
+static word_t eval_factor(bool *success);
 
-word_t expr(char *e, bool *success) {
+static uint32_t token_idx = 0;
+
+static Token* current_token() {
+    if(token_idx >= nr_token) return NULL;
+    return &tokens[token_idx];
+}
+
+static bool match_token(int expected_type) {
+    Token *token = current_token();
+    if(token != NULL && token->type == expected_type) {
+        token_idx++;
+        return true;
+    }
+    return false;
+}
+
+word_t eval_expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  token_idx = 0;
+  word_t result = eval_top_term(success);
+  if(*success && token_idx != nr_token) {
+      printf("Error: never complete\n");
+      *success = false;
+      return 0;
+  }
 
-  return 0;
+  return result;
 }
+
+static word_t eval_top_term(bool *success) {
+    return eval_and_term(success);
+}
+
+static word_t eval_and_term(bool *success) {
+    word_t result = eval_eq_term(success);
+    if(!*success) return 0;
+    
+    /* printf("Enter and\n"); */
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == TK_LOG_AND) {
+            token_idx++;
+            word_t right = eval_eq_term(success);
+            /* printf("opnum: %u, &&, right: %u\n", result, right); */
+            if(!*success) return 0;
+            result = result && right;
+        } else break;
+    }
+    /* printf("and result: 0x%08x\n", result); */
+
+    return result;
+}
+static word_t eval_eq_term(bool *success) {
+    word_t result = eval_add_term(success);
+    if(!*success) return 0;
+    
+    /* printf("Enter eq\n"); */
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == TK_EQ) {
+            token_idx++;
+            word_t right = eval_add_term(success);
+            /* printf("opnum: %u, ==, right: %u\n", result, right); */
+            if(!*success) return 0;
+            result = result == right;
+        } else if (token->type == TK_NEQ) {
+            token_idx++;
+            word_t right = eval_add_term(success);
+            /* printf("opnum: %u, !=, right: %u\n", result, right); */
+            if(!*success) return 0;
+            result = result != right;
+        } else break;
+    }
+    /* printf("eq result: 0x%08x\n", result); */
+
+    return result;
+}
+
+static word_t eval_add_term(bool *success) {
+    word_t result = eval_mul_term(success);
+    if(!*success) return 0;
+    
+    /* printf("Enter add\n"); */
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+
+        if(token->type == '+') {
+            token_idx++;
+            word_t right = eval_mul_term(success);
+            /* printf("opnum: %u, +, right: %u\n", result, right); */
+            if(!*success) return 0;
+            result += right;
+        } else if (token->type == '-') {
+            token_idx++;
+            word_t right = eval_mul_term(success);
+            /* printf("opnum: %u, -, right: %u\n", result, right); */
+            if(!*success) return 0;
+            result -= right;
+        } else break;
+    }
+    /* printf("add result: 0x%08x\n", result); */
+
+    return result;
+}
+
+static word_t eval_mul_term(bool *success) {
+    word_t result = eval_factor(success);
+    if(!*success) return 0;
+
+    /* printf("Enter mul\n"); */
+
+    while(1) {
+        Token *token = current_token();
+        if(token == NULL) break;
+        
+        if(token->type == '*') {
+            token_idx++;
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            /* printf("opnum: %u, *, right: %u\n", result, right); */
+            result *= right;
+        } else if(token->type == '/') {
+            token_idx++;
+            word_t right = eval_factor(success);
+            if(!*success) return 0;
+            if(right == 0) {
+                printf("Error: Divided by zero\n");
+                return 0;
+            }
+            /* printf("opnum: %u, /, right: %u\n", result, right); */
+            result /= right;
+        } else break;
+    }
+
+    /* printf("mul result: 0x%08x\n", result); */
+    return result;
+}
+
+static word_t eval_factor(bool *success) {
+    Token *token = current_token();
+    if(token == NULL) {
+        printf("Error: expected factor\n");
+        *success = false;
+        return 0;
+    }
+
+    /* printf("Enter factor\n"); */
+
+    word_t result = 0;
+
+    *success = true;
+
+    switch(token->type) {
+        case TK_NUM:      token_idx++; result = (word_t)atoi(token->str); break;
+        case TK_HEX_NUM:  token_idx++; result = (word_t)strtoul(token->str, NULL, 16); break;
+        case TK_REG:      token_idx++; result = isa_reg_str2val(token->str, success); break;
+        case '-':         token_idx++; word_t value = eval_factor(success); if(!*success) break; result = -value; break;
+        case '*':         token_idx++; word_t addr = eval_factor(success); if(!*success) break; result = vaddr_read(addr, 4); break;
+        case '(':         token_idx++; word_t res_expr = eval_top_term(success); if(!*success) break; 
+                          if(!match_token(')')) {printf("Error: expected right parenthesis\n"); *success = false; break;}
+                          result = res_expr; break;
+        default:          printf("Error: Could not recognize factor: %s\n", token->str); *success = false; break;
+    }
+    
+    /* printf("factor result: 0x%08x\n", result); */
+
+    return result;
+}
+

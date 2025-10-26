@@ -18,6 +18,22 @@
 
 #include <common.h>
 
-word_t expr(char *e, bool *success);
+typedef struct watchpoint {
+  int NO;
+  struct watchpoint *next;
+  char expr[65536];
+  uint32_t new_value;
+  uint32_t old_value;
+  int hit_count;
+} WP;
+
+word_t eval_expr(char *e, bool *success);
+
+void init_wp_pool();
+WP *new_wp();
+void free_wp(uint32_t N);
+void set_watchpoint(char *expr);
+void check_watchpoint();
+void info_watchpoint();
 
 #endif
