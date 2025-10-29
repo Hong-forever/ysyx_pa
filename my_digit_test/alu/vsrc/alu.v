@@ -1,4 +1,4 @@
-module alu 
+module top
 #(
     parameter DATA_WIDTH = 4
 )(

@@ -12,9 +12,9 @@ static void single_cycle() {
 }
 
 static void reset(int n) {
-  dut.rstn = 0;
+  dut.rst = 1;
   while (n -- > 0) single_cycle();
-  dut.rstn = 1;
+  dut.rst = 0;
 }
 
 

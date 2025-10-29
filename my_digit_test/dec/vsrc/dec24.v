@@ -1,5 +1,5 @@
 
-module dec24
+module top
 (
     input   wire    [1:0]   in,
     input   wire            en,

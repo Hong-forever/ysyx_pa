@@ -1,0 +1,7 @@
+module scpu
+(
+
+);
+
+
+endmodule

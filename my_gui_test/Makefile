@@ -1,4 +1,4 @@
 NAME = mytest
-SRCS = one_color.c
+SRCS = change_color.c
 
 include $(AM_HOME)/Makefile
