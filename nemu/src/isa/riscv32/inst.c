@@ -63,6 +63,21 @@ static int decode_exec(Decode *s) {
   decode_operand(s, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
   __VA_ARGS__ ; \
 }
+    int32_t src1 = 0xFFFFFFFF;  // 4294967295
+    int32_t src2 = 0xFFFFFFFF;  // 4294967295
+    
+    uint64_t result1 = (uint64_t)(uint32_t)src1 * (uint64_t)(uint32_t)src2;
+    uint64_t result2 = (uint64_t)src1 * (uint64_t)src2;
+    
+    printf("src1 = 0x%08x (%u)\n", src1, src1);
+    printf("(uint32_t)src1 = %d\n", (uint32_t)src1);
+    printf("(uint64_t)(uint32_t)src1 = 0x%016lx (%ld)\n", (uint64_t)(uint32_t)src1, (uint64_t)(uint32_t)src1);
+    printf("(uint64_t)src1 = 0x%016lx (%ld)\n", (uint64_t)src1, (uint64_t)src1);
+    
+    printf("result1 = 0x%016lx (%lu)\n", result1, result1);
+    printf("result2 = 0x%016lx (%lu)\n", result2, result2);
+    printf("result1 >> 32 = 0x%08lx (%lu)\n", result1 >> 32, result1 >> 32);
+    printf("result2 >> 32 = 0x%08lx (%lu)\n", result2 >> 32, result2 >> 32);
 
   INSTPAT_START();
   INSTPAT("??????? ????? ????? 000 ????? 00000 11", lb     , I, R(rd) = SEXT(BITS(Mr(src1 + imm, 1), 7, 0), 8));
