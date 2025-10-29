@@ -69,10 +69,10 @@ static int decode_exec(Decode *s) {
     uint64_t result1 = (uint64_t)(uint32_t)src1 * (uint64_t)(uint32_t)src2;
     uint64_t result2 = (uint64_t)src1 * (uint64_t)src2;
     
-    printf("src1 = 0x%08x (%u)\n", src1, src1);
-    printf("(uint32_t)src1 = %d\n", (uint32_t)src1);
-    printf("(uint64_t)(uint32_t)src1 = 0x%016lx (%ld)\n", (uint64_t)(uint32_t)src1, (uint64_t)(uint32_t)src1);
-    printf("(uint64_t)src1 = 0x%016lx (%ld)\n", (uint64_t)src1, (uint64_t)src1);
+    printf("src1 = 0x%08x (%d)\n", src1, src1);
+    printf("(uint32_t)src1 = %u\n", (uint32_t)src1);
+    printf("(uint64_t)(uint32_t)src1 = 0x%016lx (%lu)\n", (uint64_t)(uint32_t)src1, (uint64_t)(uint32_t)src1);
+    printf("(uint64_t)src1 = 0x%016lx (%lu)\n", (uint64_t)src1, (uint64_t)src1);
     
     printf("result1 = 0x%016lx (%lu)\n", result1, result1);
     printf("result2 = 0x%016lx (%lu)\n", result2, result2);
