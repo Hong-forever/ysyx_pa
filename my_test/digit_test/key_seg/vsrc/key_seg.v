@@ -112,9 +112,9 @@ module top
                 end else begin
                     if (break_flag) begin
                         break_flag <= 1'b0;
-                        if (key_down && (key_code == last_key)) begin
-                            key_down <= 1'b0;
-                        end
+                        // 简化：任何 release 都清除按下标志，避免因匹配失败导致无法再次计数
+                        key_down <= 1'b0;
+                        last_key <= 8'h00;
                         disp_scan <= 8'hff;
                         disp_ascii <= 8'hff;
                     end else begin
