@@ -132,17 +132,6 @@ module top
         end
     end
 
-    reg [7:0] cnt_tens, cnt_ones;
-    always @(*) begin
-        if (press_cnt > 8'd99) begin
-            cnt_tens = 8'd9;
-            cnt_ones = 8'd9;
-        end else begin
-            cnt_tens = (press_cnt / 8'd10);
-            cnt_ones = (press_cnt % 8'd10);
-        end
-    end
-
     segs segs_inst0
     (
         .din                (disp_scan   ),
@@ -169,7 +158,7 @@ module top
 
     segs segs_inst3
     (
-        .din                ({cnt_tens[3:0], cnt_ones[3:0]}   ),
+        .din                (press_cnt),
 
         .seg0               (seg6       ),
         .seg1               (seg7       )
