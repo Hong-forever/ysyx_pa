@@ -51,7 +51,7 @@ void engine_start() {
     uint32_t actual = eval_expr(expr_buf, &success);
 
     if(success && actual == expected) {
-        printf("success: %u\n", i);
+        /* printf("success: %u\n", i); */
         pass_num++;
     } else {
         printf("Error %u\nExpected: %u, Actua: %u, %s\n", i, expected, actual,expr_buf);
