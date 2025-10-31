@@ -21,11 +21,13 @@ module top
     output  wire [7:0]            seg7
 );
 
-    wire [7:0] key_code;
+    // key_event[8] = break flag (1 = release), key_event[7:0] = scan code
+    wire [8:0] key_event;
+    wire [7:0] key_code = key_event[7:0];
+    wire key_event_break = key_event[8];
     reg [7:0] ascii_map;
     reg next_data;
-
-    reg break_flag;        // 看到 0xF0，下一字节为释放（break）
+    // (旧的 break_flag 已由 ps2_key 的 event bit 替代)
     reg key_down;          // 当前有按键被按下
     reg [7:0] last_key;    // 上一次按下（make）的扫描码
     reg [7:0] disp_scan;   // 显示的扫描码（0xFF 表示空白）
@@ -44,7 +46,7 @@ module top
         .clrn               (rstn       ),
         .ps2_clk            (ps2_clk    ),
         .ps2_data           (ps2_data   ),
-        .data               (key_code   ),
+        .data               (key_event ),
         .ready              (ready      ),
         .nextdata_n         (next_data  ),
         .overflow           (overflow   )
@@ -95,9 +97,9 @@ module top
         endcase
     end
 
+    // 处理来自 ps2_key 的事件：key_event[8]=1 表示 release；0 表示 make
     always @(posedge clk) begin
         if (~rstn) begin
-            break_flag <= 1'b0;
             key_down <= 1'b0;
             last_key <= 8'h00;
             disp_scan <= 8'hff;    // 0xFF used as 'blank' sentinel
@@ -105,28 +107,22 @@ module top
             press_cnt <= 8'd0;
         end else begin
             if (ready) begin
-                if (key_code == 8'hE0) begin
-                    break_flag <= 1'b0;
-                end else if (key_code == 8'hF0) begin
-                    break_flag <= 1'b1;
+                if (key_event_break) begin
+                    // release event
+                    key_down <= 1'b0;
+                    last_key <= 8'h00;
+                    disp_scan <= 8'hff;
+                    disp_ascii <= 8'hff;
                 end else begin
-                    if (break_flag) begin
-                        break_flag <= 1'b0;
-                        // 简化：任何 release 都清除按下标志，避免因匹配失败导致无法再次计数
-                        key_down <= 1'b0;
-                        last_key <= 8'h00;
-                        disp_scan <= 8'hff;
-                        disp_ascii <= 8'hff;
-                    end else begin
-                        last_key <= key_code;
-                        if (!key_down) begin
-                            key_down <= 1'b1;
-                            if (press_cnt < 8'd99) press_cnt <= press_cnt + 1'b1;
-                        end
-                        disp_scan <= key_code;
-                        if (ascii_map != 8'hff) disp_ascii <= ascii_map;
-                        else disp_ascii <= 8'hff;
+                    // make event
+                    last_key <= key_code;
+                    if (!key_down) begin
+                        key_down <= 1'b1;
+                        if (press_cnt < 8'd99) press_cnt <= press_cnt + 1'b1;
                     end
+                    disp_scan <= key_code;
+                    if (ascii_map != 8'hff) disp_ascii <= ascii_map;
+                    else disp_ascii <= 8'hff;
                 end
             end
         end
@@ -158,7 +154,7 @@ module top
 
     segs segs_inst3
     (
-        .din                (press_cnt),
+        .din                (press_cnt   ),
 
         .seg0               (seg6       ),
         .seg1               (seg7       )
