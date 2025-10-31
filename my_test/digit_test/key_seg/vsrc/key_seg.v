@@ -33,7 +33,7 @@ module top
     reg [7:0] press_cnt;   // 按键计数（总次数，0..99）
 
     always @(posedge clk) begin
-        if(rstn) next_data <= 1'b1;
+        if(~rstn) next_data <= 1'b1;
         else if(ready) next_data <= 1'b0;
         else next_data <= 1'b1;
     end
