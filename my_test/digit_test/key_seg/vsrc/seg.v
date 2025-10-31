@@ -27,45 +27,56 @@ module segs
     parameter [7:0] SEG_F  = 8'b0111_0001;  // F - 71
 
     always @(*) begin
-        case(din[3:0])
-            4'h0:   seg0 = SEG_0;
-            4'h1:   seg0 = SEG_1;
-            4'h2:   seg0 = SEG_2;
-            4'h3:   seg0 = SEG_3;
-            4'h4:   seg0 = SEG_4;
-            4'h5:   seg0 = SEG_5;
-            4'h6:   seg0 = SEG_6;
-            4'h7:   seg0 = SEG_7;
-            4'h8:   seg0 = SEG_8;
-            4'h9:   seg0 = SEG_9;
-            4'ha:   seg0 = SEG_A;
-            4'hb:   seg0 = SEG_B;
-            4'hc:   seg0 = SEG_C;
-            4'hd:   seg0 = SEG_D;
-            4'he:   seg0 = SEG_E;
-            4'hf:   seg0 = SEG_F;
-        endcase
+        // if high byte is 0xFF (used as 'blank'), turn off segments
+        if (din == 8'hff) begin
+            seg0 = 8'b1111_1111; // all off
+        end else begin
+            case(din[3:0])
+                4'h0:   seg0 = SEG_0;
+                4'h1:   seg0 = SEG_1;
+                4'h2:   seg0 = SEG_2;
+                4'h3:   seg0 = SEG_3;
+                4'h4:   seg0 = SEG_4;
+                4'h5:   seg0 = SEG_5;
+                4'h6:   seg0 = SEG_6;
+                4'h7:   seg0 = SEG_7;
+                4'h8:   seg0 = SEG_8;
+                4'h9:   seg0 = SEG_9;
+                4'ha:   seg0 = SEG_A;
+                4'hb:   seg0 = SEG_B;
+                4'hc:   seg0 = SEG_C;
+                4'hd:   seg0 = SEG_D;
+                4'he:   seg0 = SEG_E;
+                4'hf:   seg0 = SEG_F;
+            endcase
+        end
     end
    
     always @(*) begin
-        case(din[7:4])
-            4'h0:   seg1 = SEG_0;
-            4'h1:   seg1 = SEG_1;
-            4'h2:   seg1 = SEG_2;
-            4'h3:   seg1 = SEG_3;
-            4'h4:   seg1 = SEG_4;
-            4'h5:   seg1 = SEG_5;
-            4'h6:   seg1 = SEG_6;
-            4'h7:   seg1 = SEG_7;
-            4'h8:   seg1 = SEG_8;
-            4'h9:   seg1 = SEG_9;
-            4'ha:   seg1 = SEG_A;
-            4'hb:   seg1 = SEG_B;
-            4'hc:   seg1 = SEG_C;
-            4'hd:   seg1 = SEG_D;
-            4'he:   seg1 = SEG_E;
-            4'hf:   seg1 = SEG_F;
-        endcase
+        // if din == 8'hff then blank both digits
+        if (din == 8'hff) begin
+            seg1 = 8'b1111_1111;
+        end else begin
+            case(din[7:4])
+                4'h0:   seg1 = SEG_0;
+                4'h1:   seg1 = SEG_1;
+                4'h2:   seg1 = SEG_2;
+                4'h3:   seg1 = SEG_3;
+                4'h4:   seg1 = SEG_4;
+                4'h5:   seg1 = SEG_5;
+                4'h6:   seg1 = SEG_6;
+                4'h7:   seg1 = SEG_7;
+                4'h8:   seg1 = SEG_8;
+                4'h9:   seg1 = SEG_9;
+                4'ha:   seg1 = SEG_A;
+                4'hb:   seg1 = SEG_B;
+                4'hc:   seg1 = SEG_C;
+                4'hd:   seg1 = SEG_D;
+                4'he:   seg1 = SEG_E;
+                4'hf:   seg1 = SEG_F;
+            endcase
+        end
     end
 
 endmodule
+
