@@ -12,9 +12,9 @@ static void single_cycle() {
 }
 
 static void reset(int n) {
-  dut.rstn = 0;
+  dut.rst = 1;
   while (n -- > 0) single_cycle();
-  dut.rstn = 1;
+  dut.rst = 0;
 }
 
 
@@ -23,10 +23,17 @@ int main() {
   nvboard_init();
 
   reset(10);
+  
+  //int n=50;
 
   while(1) {
     nvboard_update();
     //dut.eval();
     single_cycle();
+    
+    printf("%d\n", dut.dout);
+    //printf("pc=%d\n", dut.pc_out);
+    //printf("inst=%02x\n", dut.inst_out);
+    //printf("reg0=%d reg1=%d reg2=%d reg3=%d\n", dut.reg0, dut.reg1, dut.reg2, dut.reg3);
   }
 }
