@@ -24,9 +24,9 @@ int main() {
 
   reset(10);
   
-  int n=50;
+  // int n=50;
 
-  while(n--) {
+  while(1) {
     nvboard_update();
     //dut.eval();
     single_cycle();

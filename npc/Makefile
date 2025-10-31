@@ -42,12 +42,10 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 
 all: sim
 
-run: $(BIN)
-	@$^
 
 clean:
 	rm -rf $(BUILD_DIR)
 	
 include ../Makefile
 
-.PHONY: sim all clean run
+.PHONY: sim all clean
