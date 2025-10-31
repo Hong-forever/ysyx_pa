@@ -96,7 +96,7 @@ module top
     end
 
     always @(posedge clk) begin
-        if (rstn) begin
+        if (~rstn) begin
             break_flag <= 1'b0;
             key_down <= 1'b0;
             last_key <= 8'h00;
