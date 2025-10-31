@@ -60,7 +60,7 @@ void engine_start() {
   }
 
   fclose(fp);
-  printf("Pass %.2lf%%\n", (double)pass_num/(double)10000);
+  printf("Pass %.2lf%%\n", (double)pass_num/(double)100);
 
 
   sdb_mainloop();
