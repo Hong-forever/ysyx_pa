@@ -24,7 +24,7 @@ int main() {
 
   reset(10);
   
-  //int n=50;
+  // int n=50;
 
   while(1) {
     nvboard_update();
