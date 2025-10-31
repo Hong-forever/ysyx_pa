@@ -1,5 +1,5 @@
 
-module enc24
+module top
 (
     input   wire    [3:0]   in,
     input   wire            en,

@@ -1,4 +1,4 @@
-module key_seg
+module top
 #(
     parameter DATA_WIDTH = 8
 )(

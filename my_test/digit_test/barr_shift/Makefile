@@ -10,10 +10,7 @@ BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
-sim: 
-	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(BIN)
-	@$^
+default: $(BIN)
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -41,14 +38,12 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-all: sim
+all: default
 
 run: $(BIN)
 	@$^
 
 clean:
 	rm -rf $(BUILD_DIR)
-	
-include ../Makefile
 
-.PHONY: sim all clean run
+.PHONY: default all clean run
