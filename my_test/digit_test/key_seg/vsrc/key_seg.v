@@ -110,9 +110,10 @@ module top
                 end else begin
                     if (!key_down) begin
                         key_down <= 1'b1;
-                        if (press_cnt < 8'd99) press_cnt <= press_cnt + 1'b1;
+                        if (press_cnt < 8'hff) press_cnt <= press_cnt + 1'b1;
+                        else press_cnt <= 8'd0;
+                        disp_scan <= key_code;
                     end
-                    disp_scan <= key_code;
                     if (ascii_map != 8'hff) disp_ascii <= ascii_map;
                     else disp_ascii <= 8'hff;
                 end
@@ -130,7 +131,7 @@ module top
 
     segs segs_inst1
     (
-        .din                (disp_ascii      ),
+        .din                (disp_ascii ),
 
         .seg0               (seg2       ),
         .seg1               (seg3       )
@@ -138,7 +139,7 @@ module top
 
     segs segs_inst2
     (
-        .din                (8'hff   ),
+        .din                (8'hff      ),
 
         .seg0               (seg4       ),
         .seg1               (seg5       )
@@ -146,7 +147,7 @@ module top
 
     segs segs_inst3
     (
-        .din                (press_cnt),
+        .din                (press_cnt  ),
 
         .seg0               (seg6       ),
         .seg1               (seg7       )
