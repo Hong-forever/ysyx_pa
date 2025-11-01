@@ -67,7 +67,7 @@ void free_wp(uint32_t N) {
         return ;
     }
 
-    printf("Successly del #%d watchpoint\n", N);
+    printf("Successfully del #%d watchpoint\n", N);
 
     if(wp == head) {
         head = wp->next;

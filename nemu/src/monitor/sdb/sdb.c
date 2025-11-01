@@ -173,7 +173,6 @@ static int cmd_d(char *args) {
         return 0;
     }
 
-    printf("d N == %d\n", n);
     free_wp(n);
     return 0;
 }
