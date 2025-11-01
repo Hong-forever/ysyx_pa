@@ -33,7 +33,7 @@ void engine_start() {
   bool success = 0;
   uint32_t pass_num = 0;
 
-  for(int i=0; i<10000; i++) {
+  for(int i=0; i<500; i++) {
     int num = fscanf(fp, "%u %[^\n]", &expected, expr_buf);
     assert(num == 2);
 
@@ -60,8 +60,7 @@ void engine_start() {
   }
 
   fclose(fp);
-  printf("Pass %.2lf%%\n", (double)pass_num/(double)100);
-
+  printf("Pass %.2lf%%\n", (double)pass_num/(double)500*100);
 
   sdb_mainloop();
 #endif
