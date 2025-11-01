@@ -169,6 +169,11 @@ static int cmd_d(char *args) {
         printf("Error: should input d <N>\n");
     }
 
+    if(arg[0] < '0' || arg[0] > '9') {
+        printf("Error: Input a num!\n");
+        return 0;
+    }
+
     int n = atoi(arg);
     if(n < 0 || n >= 32) {
         printf("Error: should input d <N>\n");
