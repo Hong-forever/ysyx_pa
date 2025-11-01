@@ -54,11 +54,12 @@ void free_wp(uint32_t N) {
     WP *index = head;
     WP *wp = NULL;
     WP *prev = head;
-    for(; index != NULL; prev = index, index = index->next) {
+    for(; index != NULL; index = index->next) {
         if(index->NO == N) {
             wp = index;
             break;
         } 
+        prev = index;
     }
 
     if(wp == NULL) {
