@@ -1,4 +1,4 @@
-module top
+module LFSR 
 #(
     parameter DATA_WIDTH = 8
 )(

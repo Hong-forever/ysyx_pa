@@ -22,8 +22,8 @@ void engine_start() {
 #ifdef CONFIG_TARGET_AM
   cpu_exec(-1);
 #else
-
-  /* FILE *fp = fopen("/home/hhh/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input.txt" , "r"); */
+  /* Receive commands from user. */
+/*   FILE *fp = fopen("/home/hhh/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input.txt" , "r"); */
   /* if(fp == NULL) { */
   /*     printf("Error to open file\n"); */
   /* } */
@@ -32,8 +32,8 @@ void engine_start() {
   /* uint32_t expected; */
   /* bool success = 0; */
   /* uint32_t pass_num = 0; */
-  /*  */
-  /* for(int i=0; i<500; i++) { */
+  /*    */
+  /* for(int i=0; i<1000; i++) { */
   /*   int num = fscanf(fp, "%u %[^\n]", &expected, expr_buf); */
   /*   assert(num == 2); */
   /*  */
@@ -47,11 +47,11 @@ void engine_start() {
   /*   } */
   /*  */
   /*   *dst = '\0'; */
-  /*  */
-  /*   uint32_t actual = eval_expr(expr_buf, &success); */
+  /*    */
+  /*   uint32_t actual = expr(expr_buf, &success); */
   /*  */
   /*   if(success && actual == expected) { */
-  /*       [> printf("success: %u\n", i); <] */
+  /*       printf("success: %u\n", i); */
   /*       pass_num++; */
   /*   } else { */
   /*       printf("Error %u\nExpected: %u, Actua: %u, %s\n", i, expected, actual,expr_buf); */
@@ -60,8 +60,9 @@ void engine_start() {
   /* } */
   /*  */
   /* fclose(fp); */
-  /* printf("Pass %.2lf%%\n", (double)pass_num/(double)500*100); */
+  /* printf("Pass %u\n", pass_num); */
 /*  */
+
   sdb_mainloop();
 #endif
 }

@@ -50,7 +50,6 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
-  nemu_state.state = NEMU_QUIT;
   return -1;
 }
 
@@ -168,15 +167,8 @@ static int cmd_d(char *args) {
     if(arg == NULL) {
         printf("Error: should input d <N>\n");
     }
-
-    if(arg[0] < '0' || arg[0] > '9') {
-        printf("Error: Input a num!\n");
-        return 0;
-    }
-
     int n = atoi(arg);
     if(n < 0 || n >= 32) {
-        printf("Error: should input d <N>\n");
         printf("Error: Must be a num in [0,31]\n");
         return 0;
     }
