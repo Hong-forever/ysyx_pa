@@ -24,10 +24,8 @@ int main(int argc, char *argv[]) {
   /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
-  printf("1111111111111111111111111111111111111\n\n\n\n");
 #else
   init_monitor(argc, argv);
-  printf("222222222222222222222222222222222222222222222222222222111111\n\n\n\n");
 #endif
 
   /* Start engine. */
