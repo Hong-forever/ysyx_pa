@@ -1,4 +1,4 @@
-module vga_mem
+module top
 (
     input   wire                  clk,
     input   wire                  rst,
@@ -17,7 +17,8 @@ module vga_mem
     wire [9:0] v_addr;
     wire [23:0] vga_data;
 
-    vga_ctrl my_vga_ctrl(
+    vga_ctrl my_vga_ctrl
+    (
         .pclk(clk),
         .reset(rst),
         .vga_data(vga_data),
@@ -31,7 +32,8 @@ module vga_mem
         .vga_b(VGA_B)
     );
 
-    vmem my_vmem(
+    vmem my_vmem
+    (
         .h_addr(h_addr),
         .v_addr(v_addr[8:0]),
         .vga_data(vga_data)

@@ -46,6 +46,6 @@ all: sim
 clean:
 	rm -rf $(BUILD_DIR)
 	
-include ../Makefile
+include ../../../Makefile
 
 .PHONY: sim all clean
