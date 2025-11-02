@@ -88,6 +88,7 @@ CXXFLAGS +=  $(CFLAGS) -ffreestanding -fno-rtti -fno-exceptions
 ASFLAGS  += -MMD $(INCFLAGS)
 LDFLAGS  += -z noexecstack $(addprefix -T, $(LDSCRIPTS))
 
+$(info === Reading AM Makefile ===)
 NEMUFLAGS += -b
 ## 4. Arch-Specific Configurations
 
@@ -98,7 +99,6 @@ NEMUFLAGS += -b
 
 ### Rule (compile): a single `.c` -> `.o` (gcc)
 $(DST_DIR)/%.o: %.c
-	echo "hhh++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 	@mkdir -p $(dir $@) && echo + CC $<
 	@$(CC) -std=gnu11 $(CFLAGS) -c -o $@ $(realpath $<)
 
