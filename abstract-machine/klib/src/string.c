@@ -32,8 +32,11 @@ char *strncpy(char *dst, const char *src, size_t n) {
 }
 
 char *strcat(char *dst, const char *src) {
-    for(size_t i=strlen(dst), j=0; src[j] != '\0'; i++, j++)
+    size_t i, j;
+    for(i=strlen(dst), j=0; src[j] != '\0'; i++, j++)
         dst[i] = src[j];
+
+    dst[i+j] = '\0';
 
     return dst;
 }
@@ -59,7 +62,7 @@ int strncmp(const char *s1, const char *s2, size_t n) {
 }
 
 void *memset(void *s, int c, size_t n) {
-    int *dst = (int *)s;
+    uint8_t *dst = (uint8_t *)s;
     for(size_t i=0; i<n; i++) dst[i] = c;
 
     return s;
@@ -72,7 +75,7 @@ void *memmove(void *dst, const void *src, size_t n) {
     if(d<s) {
         for(size_t i=0; i<n; i++) d[i] = s[i];
     } else if(d>s) {
-        for(size_t i=n-1; i>=0; i--) d[i] = s[i];
+        for(size_t i=n; i>0; i--) d[i-1] = s[i-1];
     }
 
     return dst;
