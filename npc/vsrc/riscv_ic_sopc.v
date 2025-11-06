@@ -55,8 +55,8 @@ module top
         .I_jtag_haltreq         (1'b0                       )
     );
 
-    wire [`MemAddrBus] ibus_addr_to_guost = ibus_addr - 32'h8000_0000;
-    wire [`MemAddrBus] dbus_addr_to_guost = dbus_addr - 32'h8000_0000;
+    wire [`MemAddrBus] ibus_addr_to_guost = ibus_addr & 32'h7fff_ffff;
+    wire [`MemAddrBus] dbus_addr_to_guost = dbus_addr & 32'h7fff_ffff;
 
 
     import "DPI-C" function bit[31:0] pmem_read(input bit[31:0] raddr);
