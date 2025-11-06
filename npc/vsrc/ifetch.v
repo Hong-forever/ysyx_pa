@@ -49,7 +49,6 @@ module ifetch
 
     // 取指PC
     reg [`InstAddrBus] pc;
-    reg [`InstAddrBus] pc_r;
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             pc <= `RomAddrBase;
