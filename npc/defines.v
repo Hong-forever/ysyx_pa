@@ -371,4 +371,4 @@
 
 `define DBUS_MASK 4
 
-`define RomAddrBase 32'h8000_0000
+`define RomAddrBase 32'h0000_0000

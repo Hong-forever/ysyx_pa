@@ -3,26 +3,41 @@
 
 #define MEM_DEPTH 131072 
 
-#if MODE==MEM
-    #define MEM_DATA "mem.data"
-#elif MODE==SUM
-    #define MEM_DATA "sum.data"
-#elif MODE==VGA
-    #define MEM_DATA "vga.data"
-#else
-    #define MEM_DATA "dummy-minirv-npc.bin"
-#endif
+static char *img_file = "dummy-minirv-npc.bin";
 
 static TOP_NAME dut;
 
 void nvboard_bind_all_pins(TOP_NAME* top);
 
 static uint32_t mem[MEM_DEPTH] = {0};
+
 int trap_flag = 0;
 
 extern "C" int pmem_read(int raddr) {
     printf("data: 0x%08x addr: 0x%08x\n", mem[raddr>>2], raddr);
     return mem[raddr>>2];
+}
+
+static size_t load_img() {
+    if(img_file == NULL) {
+        printf("No image give\n");
+        return 0;
+    }
+
+    FILE *fp = fopen(img_file, "rb");
+    assert(fp);
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+
+    printf("The image is %s, size = %ld", img_file, size);
+
+    fseek(fp, 0, SEEK_SET);
+    int ret = fread(mem, size, 1, fp);
+    assert(ret == 1);
+
+    fclose(fp);
+    return size;
 }
 
 static int tra_mask(int wmask) {
@@ -65,18 +80,9 @@ int main() {
   nvboard_bind_all_pins(&dut);
   nvboard_init();
   
-  FILE *file = fopen(MEM_DATA, "rb");
-  if(file == NULL) printf("Error read\n");
-
-  size_t count = 0;
-
-  count = fread(mem, sizeof(mem[0]), MEM_DEPTH, file);
-
-  fclose(file);
-  printf("count: %d\n", count);
+  size_t size = load_img();
 
   reset(10);
-  
 
   while(1) {
 
