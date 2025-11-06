@@ -1,591 +1,688 @@
 `include "defines.v"
 
-module riscv_ic 
+//------------------------------------------------------------------------
+// cpu core
+//------------------------------------------------------------------------
+
+module riscv_ic
 (
     input   wire                        clk,
-    input   wire                        rst_n,
+    input   wire                        rst,
 
     //ibus
-    output  wire                        ibus_req_o,
-    output  wire    [`InstAddrBus   ]   ibus_addr_o,
-    input   wire    [`InstBus       ]   ibus_data_i,   
-    
-    //dbus
-    output  wire                        dbus_req_o,
-    output  wire                        dbus_we_o,
-    output  wire    [`InstAddrBus   ]   dbus_addr_o,
-    input   wire    [`InstBus       ]   dbus_data_i,
-    output  wire    [`InstBus       ]   dbus_data_o,
-    output  wire    [`ByteSel-1:0   ]   dbus_sel_o,
+    output  wire                        O_ibus_req,
+    output  wire                        O_ibus_we,
+    output  wire    [`InstAddrBus    ]  O_ibus_addr,
+    output  wire    [`InstBus        ]  O_ibus_data,
+    output  wire    [`DBUS_MASK-1:0  ]  O_ibus_mask,
+    input   wire    [`InstBus        ]  I_ibus_data,
 
-    //from perip
-    input   wire    [`INT_BUS       ]   int_i
+    //dbus
+    output  wire                        O_dbus_req,
+    output  wire                        O_dbus_we,
+    output  wire    [`MemAddrBus    ]   O_dbus_addr,
+    output  wire    [`MemDataBus    ]   O_dbus_data,
+    output  wire    [`DBUS_MASK-1:0 ]   O_dbus_mask,
+    input   wire    [`MemDataBus    ]   I_dbus_data,
+
+    //from peripheral
+    input   wire    [`INT_BUS       ]   I_int,
+    input   wire                        I_jtag_haltreq   //jtag暂停标志
 
 );
 
-    //**********************/ ifu /***************************//
-    //IFU->IFU/IDU
-    wire [`InstBus    ] ifu_inst_o;
-    wire [`InstAddrBus] ifu_inst_addr_o;
+    //-------------------------------------------------------------
+    // ifetch
+    //-------------------------------------------------------------
+    wire [`InstBus    ] O_if_inst;
+    wire [`InstAddrBus] O_if_inst_addr;
 
-    //**********************/ ifu_idu /***************************//
-    //IFU/IDU->ID
-    wire [`InstBus    ] idu_inst_i;
-    wire [`InstAddrBus] idu_inst_addr_i;
+    //-------------------------------------------------------------
+    // pipeline_if_dec
+    //-------------------------------------------------------------
+    wire [`InstBus    ] I_dec_inst;
+    wire [`InstAddrBus] I_dec_inst_addr;
 
-    //**********************/ idu /***************************//
-    //IDU->IFU or IFU/IDU
-    wire                idu_jump_flag_o;
-    wire [`InstAddrBus] idu_jump_addr_o;
-    //IDU->Regfile
-    wire                reg1_re_o;
-    wire [`RegAddrBus ] reg1_addr_o;
-    wire                reg2_re_o;
-    wire [`RegAddrBus ] reg2_addr_o;
-    //Regfile->IDU
-    wire [`RegBus     ] reg1_rdata_i;
-    wire [`RegBus     ] reg2_rdata_i;
-    //IDU->CSR
-    wire                csr_re_o;
-    wire [`MemAddrBus ] csr_raddr_o;
-    //CSR->IDU
-    wire [`RegBus     ] csr_rdata_i;
-    //IDU->IDU/EXU
-    wire [`InstBus    ] idu_inst_o;
-    wire [`InstAddrBus] idu_inst_addr_o;
-    wire [`RegBus     ] idu_reg1_rdata_o;
-    wire [`RegBus     ] idu_reg2_rdata_o;
-    wire                idu_reg_we_o;
-    wire [`RegAddrBus ] idu_reg_waddr_o;
-    wire [`MemAddrBus ] idu_offset_memory_o;
-    wire                idu_csr_we_o;   
-    wire [`MemAddrBus ] idu_csr_waddr_o; 
-    wire [`RegBus     ] idu_csr_rdata_o; 
-    wire [`CSRCRL_WIDTH-1:0] idu_CSRCtrl_o;
-    wire [`ALUCTL_WIDTH-1:0] idu_ALUCtrl_o;
-    wire                idu_ls_valid_o;
-    wire [`ls_diff_bus] idu_ls_type_o;
-    wire [`InstAddrBus] idu_link_addr_o;
+    //-------------------------------------------------------------
+    // decoder
+    //-------------------------------------------------------------
+    wire [`RegAddrBus ] O_rs1_raddr;
+    wire [`RegAddrBus ] O_rs2_raddr;
+    wire [`CSRAddrBus ] O_csr_raddr;
+    wire [`RegDataBus ] I_rs1_rdata;
+    wire [`RegDataBus ] I_rs2_rdata;
+    wire [`CSRDataBus ] I_csr_rdata;
 
-    //**********************/ idu_exu /***************************//
-    //IDU/EXU->EXU
-    wire [`InstBus    ] exu_inst_i;
-    wire [`InstAddrBus] exu_inst_addr_i;
-    wire [`RegBus     ] exu_reg1_rdata_i;
-    wire [`RegBus     ] exu_reg2_rdata_i;
-    wire                exu_reg_we_i;
-    wire [`RegAddrBus ] exu_reg_waddr_i;
-    wire [`InstAddrBus] exu_link_addr_i;
-    wire [`MemAddrBus ] exu_offset_memory_i;
-    wire                exu_csr_we_i;
-    wire [`MemAddrBus ] exu_csr_waddr_i;
-    wire [`RegBus     ] exu_csr_rdata_i;
-    wire [`CSRCRL_WIDTH-1:0] exu_CSRCtrl_i;
-    wire [`ALUCTL_WIDTH-1:0] exu_ALUCtrl_i;
-    wire                exu_ls_valid_i;
-    wire [`ls_diff_bus] exu_ls_type_i;
+    wire [`InstBus    ] O_dec_inst;
+    wire [`InstAddrBus] O_dec_inst_addr;
+    wire [`RegDataBus ] O_dec_rs1_rdata;
+    wire [`RegDataBus ] O_dec_rs2_rdata;
+    wire [`RegDataBus ] O_dec_imm;
+    wire                O_dec_rd_we;
+    wire [`RegAddrBus ] O_dec_rd_waddr;
+    wire                O_dec_csr_we;
+    wire [`CSRAddrBus ] O_dec_csr_waddr;
+    wire [`CSRDataBus ] O_dec_csr_rdata;
+    wire [`CSRCTL_WIDTH-1:0     ] O_dec_CSRCtrl;
+    wire [`ALUCTL_WIDTH-1:0     ] O_dec_ALUCtrl;
+    wire [`BRUCTL_WIDTH-1:0     ] O_dec_BRUCtrl;
+    wire [`ALUSrcA_sel_width-1:0] O_dec_ALUSrcA_sel;
+    wire [`ALUSrcB_sel_width-1:0] O_dec_ALUSrcB_sel;
+    wire [`AGUSrc_sel_width-1:0 ] O_dec_AGUSrc_sel;
+    wire [`CSRSrc_sel_width-1:0 ] O_dec_CSRSrc_sel;
+    wire                O_dec_ls_valid;
+    wire [`ls_diff_bus] O_dec_ls_type;
+    wire [`Except_Bus ] O_dec_except;
+
+    //-------------------------------------------------------------
+    // pipeline_dec_ex
+    //-------------------------------------------------------------
+    wire [`InstBus    ] I_ex_inst;
+    wire [`InstAddrBus] I_ex_inst_addr;
+    wire [`RegDataBus ] I_ex_rs1_rdata;
+    wire [`RegDataBus ] I_ex_rs2_rdata;
+    wire [`RegDataBus ] I_ex_imm;
+    wire                I_ex_rd_we;
+    wire [`RegAddrBus ] I_ex_rd_waddr;
+    wire                I_ex_csr_we;
+    wire [`CSRAddrBus ] I_ex_csr_waddr;
+    wire [`CSRDataBus ] I_ex_csr_rdata;
+    wire [`CSRCTL_WIDTH-1:0] I_ex_CSRCtrl;
+    wire [`ALUCTL_WIDTH-1:0] I_ex_ALUCtrl;
+    wire [`BRUCTL_WIDTH-1:0] I_ex_BRUCtrl;
+    wire [`ALUSrcA_sel_width-1:0] I_ex_ALUSrcA_sel;
+    wire [`ALUSrcB_sel_width-1:0] I_ex_ALUSrcB_sel;
+    wire [`AGUSrc_sel_width-1:0 ] I_ex_AGUSrc_sel;
+    wire [`CSRSrc_sel_width-1:0 ] I_ex_CSRSrc_sel;
+    wire                I_ex_ls_valid;
+    wire [`ls_diff_bus] I_ex_ls_type;
+    wire                I_ex_rs1_re;
+    wire                I_ex_rs2_re;
+    wire                I_ex_csr_re;
+    wire [`RegAddrBus ] I_ex_rs1_raddr;
+    wire [`RegAddrBus ] I_ex_rs2_raddr;
+    wire [`CSRAddrBus ] I_ex_csr_raddr;
+    wire [`Except_Bus ] I_ex_except;
+
+    //-------------------------------------------------------------
+    // fwd_unit
+    //-------------------------------------------------------------
+    wire [`FWDSrc_sel_width-1:0] O_dec_FWDCtrl_rs1;
+    wire [`FWDSrc_sel_width-1:0] O_dec_FWDCtrl_rs2;
+    wire [`FWDSrc_sel_width-1:0] O_dec_FWDCtrl_csr;
+
+    wire [`FWDSrc_sel_width-1:0] I_ex_FWDCtrl_rs1;
+    wire [`FWDSrc_sel_width-1:0] I_ex_FWDCtrl_rs2;
+    wire [`FWDSrc_sel_width-1:0] I_ex_FWDCtrl_csr;
+
+    wire                O_dec_rs1_re;
+    wire                O_dec_rs2_re;
+    wire                O_dec_csr_re;
+
+    wire                I_ex_fwd_rd_we;
+    wire [`RegAddrBus ] I_ex_fwd_rd_waddr;
+
+    wire                I_ls_fwd_rd_we;
+    wire [`RegAddrBus ] I_ls_fwd_rd_waddr;
+    wire [`RegDataBus ] I_ls_fwd_rd_wdata;
+
+    wire [`RegDataBus ] I_wb_fwd_rd_wdata;
+
+    wire                I_ex_fwd_csr_we;
+    wire [`CSRAddrBus ] I_ex_fwd_csr_waddr;
+
+    wire                I_ls_fwd_csr_we;
+    wire [`CSRAddrBus ] I_ls_fwd_csr_waddr;
+    wire [`CSRDataBus ] I_ls_fwd_csr_wdata;
+
+    wire [`CSRDataBus ] I_wb_fwd_csr_wdata;
+
+    //-------------------------------------------------------------
+    // exec
+    //-------------------------------------------------------------
+    wire                O_ex_bru_taken;
+    wire [`InstAddrBus] O_ex_bru_target;
+
+    wire [`InstBus    ] O_ex_inst;
+    wire [`InstAddrBus] O_ex_inst_addr;
+    wire                O_ex_rd_we;
+    wire [`RegAddrBus ] O_ex_rd_waddr;
+    wire [`RegDataBus ] O_ex_rd_wdata;
+    wire [`MemAddrBus ] O_ex_memory_addr;
+    wire [`MemDataBus ] O_ex_store_data;
+    wire                O_ex_ls_valid;
+    wire [`ls_diff_bus] O_ex_ls_type;
+    wire                O_ex_csr_we;
+    wire [`CSRAddrBus ] O_ex_csr_waddr;
+    wire [`CSRDataBus ] O_ex_csr_wdata;
+    wire [`Except_Bus ] O_ex_except;
+
+    //-------------------------------------------------------------
+    // pipeline_ex_ls
+    //-------------------------------------------------------------
+    wire [`InstBus    ] I_ls_inst;
+    wire [`InstAddrBus] I_ls_inst_addr;
+    wire                I_ls_rd_we;
+    wire [`RegAddrBus ] I_ls_rd_waddr;
+    wire [`RegDataBus ] I_ls_rd_wdata;
+    wire [`MemAddrBus ] I_ls_memory_addr;
+    wire [`MemDataBus ] I_ls_store_data;
+    wire                I_ls_ls_valid;
+    wire [`ls_diff_bus] I_ls_ls_type;
+    wire                I_ls_csr_we;
+    wire [`CSRAddrBus ] I_ls_csr_waddr;
+    wire [`CSRDataBus ] I_ls_csr_wdata;
+    wire [`Except_Bus ] I_clint_except;
 
 
-    //**********************/ exu /***************************//
-    //EXU->EXU/LSU
-    wire [`InstBus    ] exu_inst_o;
-    wire [`InstAddrBus] exu_inst_addr_o;
-    wire                exu_reg_we_o;
-    wire [`RegAddrBus ] exu_reg_waddr_o;
-    wire [`RegBus     ] exu_reg_wdata_o;
-    wire [`MemAddrBus ] exu_memory_addr_o;
-    wire [`MemBus     ] exu_store_data_o;      
-    wire                exu_csr_we_o;
-    wire [`MemAddrBus ] exu_csr_waddr_o;
-    wire [`RegBus     ] exu_csr_wdata_o;
-    wire                exu_ls_valid_o;
-    wire [`ls_diff_bus] exu_ls_type_o;
+    //-------------------------------------------------------------
+    // ls
+    //-------------------------------------------------------------
+    wire [`InstBus    ] O_ls_inst;
+    wire [`InstAddrBus] O_ls_inst_addr;
+    wire                O_ls_rd_we;
+    wire [`RegAddrBus ] O_ls_rd_waddr;
+    wire [`RegDataBus ] O_ls_rd_wdata;
+    wire                O_ls_csr_we;
+    wire [`CSRAddrBus ] O_ls_csr_waddr;
+    wire [`CSRDataBus ] O_ls_csr_wdata;
 
-    //EXU->IDU    load数据相关问题，确认上一条指令是否为load指令
-    wire                exu_inst_is_load;
+    //-------------------------------------------------------------
+    // pipeline_ls_wb
+    //-------------------------------------------------------------
+    wire [`InstBus    ] I_wb_inst;
+    wire [`InstAddrBus] I_wb_inst_addr;
+    wire                I_wb_rd_we;
+    wire [`RegAddrBus ] I_wb_rd_waddr;
+    wire [`RegDataBus ] I_wb_rd_wdata;
+    wire                I_wb_csr_we;
+    wire [`CSRAddrBus ] I_wb_csr_waddr;
+    wire [`CSRDataBus ] I_wb_csr_wdata;
 
-    //**********************/ exu_lsu /***************************//
-    //EXU/LSU->LSU
-    wire [`InstBus    ] lsu_inst_i;
-    wire [`InstAddrBus] lsu_inst_addr_i;
-    wire                lsu_reg_we_i;
-    wire [`RegAddrBus ] lsu_reg_waddr_i;
-    wire [`RegBus     ] lsu_reg_wdata_i;
-    wire [`MemAddrBus ] lsu_memory_addr_i;
-    wire [`MemBus     ] lsu_store_data_i;     
-    wire                lsu_ls_valid_i;
-    wire [`ls_diff_bus] lsu_ls_type_i; 
-    wire                lsu_csr_we_i;
-    wire [`MemAddrBus ] lsu_csr_waddr_i;
-    wire [`RegBus     ] lsu_csr_wdata_i;
-
-    //**********************/ lsu /***************************//
-    //LSU->LSU/WBU
-    wire [`InstBus    ] lsu_inst_o;
-    wire [`InstAddrBus] lsu_inst_addr_o;
-    wire                lsu_reg_we_o;
-    wire [`RegAddrBus ] lsu_reg_waddr_o;
-    wire [`RegBus     ] lsu_reg_wdata_o;
-    wire                lsu_csr_we_o;
-    wire [`MemAddrBus ] lsu_csr_waddr_o;
-    wire [`RegBus     ] lsu_csr_wdata_o;
-    wire                lsu_memory_misalign_o;
-
-    //**********************/ lsu_wbu /***************************//
-    //LSU/WBU->WBU   
-    wire [`InstBus    ] wbu_inst_i;
-    wire [`InstAddrBus] wbu_inst_addr_i;
-    wire                wbu_reg_we_i;
-    wire [`RegAddrBus ] wbu_reg_waddr_i;
-    wire [`RegBus     ] wbu_reg_wdata_i;
-    wire                wbu_csr_we_i;
-    wire [`MemAddrBus ] wbu_csr_waddr_i;
-    wire [`RegBus     ] wbu_csr_wdata_i;
-
-    //**********************/ regfile /***************************//
-
-    //**********************/ pipe_ctrl /***************************//
-    wire                stallreq_from_ifu;
-    wire                stallreq_from_idu;
-    wire                stallreq_from_exu;
-    wire                stallreq_from_lsu;
+    //-------------------------------------------------------------
+    // pipe_ctrl
+    //-------------------------------------------------------------
+    wire                stallreq_from_if;
+    wire                stallreq_from_dec;
+    wire                stallreq_from_ex;
+    wire                stallreq_from_ls;
     wire                stallreq_from_clint;
-    wire                jtag_haltreq;
-    wire [`StallBus   ] stall_o;
-    wire                flush_o;
-    wire [`InstAddrBus] flush_addr_o;
+    wire [`StallBus   ] Stall;
+    wire [`KillBus    ] Kill;
 
 
-    //**********************/ csr-reg /***************************//
-    wire [`RegBus     ] csr_mtvec;
-    wire [`RegBus     ] csr_mepc;
-    wire [`RegBus     ] csr_mstatus;
+    //-------------------------------------------------------------
+    // csr_reg
+    //-------------------------------------------------------------
+    wire [`CSRDataBus]  csr_mtvec;
+    wire [`CSRDataBus]  csr_mepc;
+    wire [`CSRDataBus]  csr_mstatus;
     wire                csr_global_int_en;
 
-    //**********************/ clint /***************************//
+    //-------------------------------------------------------------
+    // clint
+    //-------------------------------------------------------------
     wire                clint_we;
-    wire [`MemAddrBus ] clint_waddr;
-    wire [`RegBus     ] clint_wdata;
-    wire                int_assert;
-    wire [`InstAddrBus] int_addr;
+    wire [`CSRAddrBus]  clint_waddr;
+    wire [`CSRDataBus]  clint_wdata;
+    wire                O_flush;
+    wire [`InstAddrBus] O_flush_addr;
 
+    //-------------------------------------------------------------
+    // instantiate modules
+    //-------------------------------------------------------------
 
-
-    //ifu
-    ifu ifu0
+    ifetch u_ifetch
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
-        .jtag_halt_i            (jtag_haltreq               ),
-        .jump_flag_i            (idu_jump_flag_o            ),
-        .jump_addr_i            (idu_jump_addr_o            ),
-        .stall_i                (stall_o                    ),
-        .flush_i                (flush_o                    ),
-        .flush_addr_i           (flush_addr_o               ),
-        .inst_o                 (ifu_inst_o                 ),
-        .inst_addr_o            (ifu_inst_addr_o            ),
-        .ibus_req_o             (ibus_req_o                 ),
-        .ibus_addr_o            (ibus_addr_o                ),
-        .ibus_data_i            (ibus_data_i                ),
-        .stallreq_o             (stallreq_from_ifu          )
+        .rst                    (rst                        ),
+
+        .I_bru_taken            (O_ex_bru_taken             ),
+        .I_bru_target           (O_ex_bru_target            ),
+
+        .I_jtag_halt            (I_jtag_haltreq             ),
+        .I_stall                (Stall[`Stall_pc]           ),
+        .I_flush                (O_flush                    ),
+        .I_flush_addr           (O_flush_addr               ),
+
+        .O_inst                 (O_if_inst                  ),
+        .O_inst_addr            (O_if_inst_addr             ),
+        
+        .O_stallreq             (stallreq_from_if           ),
+
+        .O_ibus_req             (O_ibus_req                 ),
+        .O_ibus_we              (O_ibus_we                  ),
+        .O_ibus_addr            (O_ibus_addr                ),
+        .O_ibus_data            (O_ibus_data                ),
+        .O_ibus_mask            (O_ibus_mask                ),
+        .I_ibus_data            (I_ibus_data                )
     );
 
-    //IFU/IDU
-    ifu_idu ifu_idu0
+
+    decoder u0_decoder
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        .inst_i                 (ifu_inst_o                 ),
-        .inst_addr_i            (ifu_inst_addr_o            ),
+        .I_inst                 (I_dec_inst                 ),
+        .I_inst_addr            (I_dec_inst_addr            ),
 
-        .inst_o                 (idu_inst_i                 ),
-        .inst_addr_o            (idu_inst_addr_i            ),
+        .O_rs1_raddr            (O_rs1_raddr                ),
+        .O_rs2_raddr            (O_rs2_raddr                ),
+        .O_csr_raddr            (O_csr_raddr                ),
+        .I_rs1_rdata            (I_rs1_rdata                ),
+        .I_rs2_rdata            (I_rs2_rdata                ),
+        .I_csr_rdata            (I_csr_rdata                ),
 
-        .jump_flag_i            (idu_jump_flag_o            ),
-        .stall_i                (stall_o                    ),
-        .flush_i                (flush_o                    )
+        .O_inst                 (O_dec_inst                 ),
+        .O_inst_addr            (O_dec_inst_addr            ),
+        .O_rs1_rdata            (O_dec_rs1_rdata            ),
+        .O_rs2_rdata            (O_dec_rs2_rdata            ),
+        .O_imm                  (O_dec_imm                  ),
+        .O_rd_we                (O_dec_rd_we                ),
+        .O_rd_waddr             (O_dec_rd_waddr             ),
+        .O_csr_we               (O_dec_csr_we               ),
+        .O_csr_waddr            (O_dec_csr_waddr            ),
+        .O_csr_rdata            (O_dec_csr_rdata            ),
+        .O_CSRCtrl              (O_dec_CSRCtrl              ),
+        .O_ALUCtrl              (O_dec_ALUCtrl              ),
+        .O_BRUCtrl              (O_dec_BRUCtrl              ),
+        .O_ALUSrcA_sel          (O_dec_ALUSrcA_sel          ),
+        .O_ALUSrcB_sel          (O_dec_ALUSrcB_sel          ),
+        .O_AGUSrc_sel           (O_dec_AGUSrc_sel           ),
+        .O_CSRSrc_sel           (O_dec_CSRSrc_sel           ),
+        .O_ls_valid             (O_dec_ls_valid             ),
+        .O_ls_type              (O_dec_ls_type              ),
+        .O_rs1_re               (O_dec_rs1_re               ),
+        .O_rs2_re               (O_dec_rs2_re               ),
+        .O_csr_re               (O_dec_csr_re               ),
+        .O_except               (O_dec_except               )    
     );
-    
-    //IDU
-    idu idu0
+
+
+    fwd_unit u0_fwd_unit
     (
-        .rst_n                  (rst_n                      ),
-        .inst_i                 (idu_inst_i                 ),
-        .inst_addr_i            (idu_inst_addr_i            ),
+        .I_rs1_re               (O_dec_rs1_re               ),
+        .I_rs2_re               (O_dec_rs2_re               ),
+        .I_csr_re               (O_dec_csr_re               ),
 
-        //to regfile
-        .reg1_re_o              (reg1_re_o                  ),
-        .reg2_re_o              (reg2_re_o                  ),
-        .reg1_raddr_o           (reg1_addr_o                ),
-        .reg2_raddr_o           (reg2_addr_o                ),
-        //from regfile
-        .reg1_rdata_i           (reg1_rdata_i               ),
-        .reg2_rdata_i           (reg2_rdata_i               ),
+        .I_rs1_raddr            (O_rs1_raddr                ),
+        .I_rs2_raddr            (O_rs2_raddr                ),
+        .I_csr_raddr            (O_csr_raddr                ),
 
-        //to csr reg
-        .csr_re_o               (csr_re_o                   ),
-        .csr_raddr_o            (csr_raddr_o                ),
-        //from csr reg
-        .csr_rdata_i            (csr_rdata_i                ),
+        .I_ls_rd_we             (I_ex_fwd_rd_we             ),
+        .I_ls_rd_waddr          (I_ex_fwd_rd_waddr          ),
+        .I_wb_rd_we             (I_ls_fwd_rd_we             ),
+        .I_wb_rd_waddr          (I_ls_fwd_rd_waddr          ),
 
-        /***data-forward***/        
-        //from exu
-        .exu_reg_we_i           (exu_reg_we_o               ),
-        .exu_reg_waddr_i        (exu_reg_waddr_o            ),
-        .exu_reg_wdata_i        (exu_reg_wdata_o            ),
+        .I_ls_csr_we            (I_ex_fwd_csr_we            ),
+        .I_ls_csr_waddr         (I_ex_fwd_csr_waddr         ),
+        .I_wb_csr_we            (I_ls_fwd_csr_we            ),
+        .I_wb_csr_waddr         (I_ls_fwd_csr_waddr         ),
 
-        //from lsu
-        .lsu_reg_we_i           (lsu_reg_we_o               ),
-        .lsu_reg_waddr_i        (lsu_reg_waddr_o            ),
-        .lsu_reg_wdata_i        (lsu_reg_wdata_o            ),
-        /***->->->->->->***/
-
-        /***csr_reg-data-forward***/
-        //from exu
-        .exu_csr_we_i           (exu_csr_we_o               ),
-        .exu_csr_waddr_i        (exu_csr_waddr_o            ),
-        .exu_csr_wdata_i        (exu_csr_wdata_o            ),
-    
-        //from lsu
-        .lsu_csr_we_i           (lsu_csr_we_o               ),
-        .lsu_csr_waddr_i        (lsu_csr_waddr_o            ),
-        .lsu_csr_wdata_i        (lsu_csr_wdata_o            ),
-        /***------------***/
-    
-
-        //to IDU/EXU
-        .inst_o                 (idu_inst_o                 ), 
-        .inst_addr_o            (idu_inst_addr_o            ),     
-        .reg1_rdata_o           (idu_reg1_rdata_o           ),
-        .reg2_rdata_o           (idu_reg2_rdata_o           ),
-        .reg_we_o               (idu_reg_we_o               ),
-        .reg_waddr_o            (idu_reg_waddr_o            ),
-        .csr_we_o               (idu_csr_we_o               ),   
-        .csr_waddr_o            (idu_csr_waddr_o            ),
-        .csr_rdata_o            (idu_csr_rdata_o            ),
-
-        .CSRCtrl_o              (idu_CSRCtrl_o              ),
-        .ALUCtrl_o              (idu_ALUCtrl_o              ),
-
-        .offset_memory_o        (idu_offset_memory_o        ),
-        .ls_valid_o             (idu_ls_valid_o             ),
-        .ls_type_o              (idu_ls_type_o              ),
-
-        .link_addr_o            (idu_link_addr_o            ),
-        .prev_is_load_i         (exu_inst_is_load           ),
-
-        .jump_flag_o            (idu_jump_flag_o            ),
-        .jump_addr_o            (idu_jump_addr_o            ),
-
-        //to pipe_ctrl
-        .stallreq_o             (stallreq_from_idu          )
+        .O_FWDCtrl_rs1          (O_dec_FWDCtrl_rs1          ),
+        .O_FWDCtrl_rs2          (O_dec_FWDCtrl_rs2          ),
+        .O_FWDCtrl_csr          (O_dec_FWDCtrl_csr          )
 
     );
 
-    //regfile
-    regfile regfile0
+    fwd_load_stall u_fwd_load_stall
+    (
+        .I_ex_ls_valid          (I_ex_ls_valid              ),
+        .I_ex_ls_load           (~I_ex_ls_type[`ls_diff_width-1]),
+        .I_ex_rd_waddr          (I_ex_rd_waddr              ),
+
+        .I_dec_rs1_re           (O_dec_rs1_re               ),
+        .I_dec_rs1_raddr        (O_rs1_raddr                ),
+        .I_dec_rs2_re           (O_dec_rs2_re               ),
+        .I_dec_rs2_raddr        (O_rs2_raddr                ),
+
+        .I_bru_taken            (O_ex_bru_taken             ),
+
+        .O_stallreq             (stallreq_from_dec          )
+
+    );
+
+    regfile u_regfile
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        .inst_i                 (wbu_inst_i                 ),
-        .inst_addr_i            (wbu_inst_addr_i            ),      
+        .I_inst                 (I_wb_inst                  ),
+        .I_inst_addr            (I_wb_inst_addr             ),
 
-        //from idu
-        .reg1_re_i              (reg1_re_o                  ),
-        .reg2_re_i              (reg2_re_o                  ),
-        .raddr1_i               (reg1_addr_o                ),
-        .raddr2_i               (reg2_addr_o                ),
-        //to idu
-        .rdata1_o               (reg1_rdata_i               ),
-        .rdata2_o               (reg2_rdata_i               ),
+        .I_rs1_raddr            (O_rs1_raddr                ),
+        .I_rs2_raddr            (O_rs2_raddr                ),
 
-        //from lsu    
-        .we_i                   (wbu_reg_we_i               ),
-        .waddr_i                (wbu_reg_waddr_i            ),
-        .wdata_i                (wbu_reg_wdata_i            )
+        .O_rs1_rdata            (I_rs1_rdata                ),
+        .O_rs2_rdata            (I_rs2_rdata                ),
+
+        .I_rd_we                (I_wb_rd_we                 ),
+        .I_rd_waddr             (I_wb_rd_waddr              ),
+        .I_rd_wdata             (I_wb_rd_wdata              )
     );
 
-    //IDU/EXU
-    idu_exu idu_exu0
+    exec u0_exec
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        //from idu       
-        .inst_i                 (idu_inst_o                 ),
-        .inst_addr_i            (idu_inst_addr_o            ),
-        .reg1_rdata_i           (idu_reg1_rdata_o           ),
-        .reg2_rdata_i           (idu_reg2_rdata_o           ),
-        .reg_we_i               (idu_reg_we_o               ),
-        .reg_waddr_i            (idu_reg_waddr_o            ),
-        .offset_memory_i        (idu_offset_memory_o        ),
-        .csr_we_i               (idu_csr_we_o               ),
-        .csr_waddr_i            (idu_csr_waddr_o            ),
-        .csr_rdata_i            (idu_csr_rdata_o            ),
-        .CSRCtrl_i              (idu_CSRCtrl_o              ),
-        .ALUCtrl_i              (idu_ALUCtrl_o              ),
+        .I_inst                 (I_ex_inst                  ),
+        .I_inst_addr            (I_ex_inst_addr             ),
+        .I_rd_we                (I_ex_rd_we                 ),
+        .I_rd_waddr             (I_ex_rd_waddr              ),
+        .I_imm                  (I_ex_imm                   ),
+        .I_csr_we               (I_ex_csr_we                ),
+        .I_csr_waddr            (I_ex_csr_waddr             ),
+        .I_CSRCtrl              (I_ex_CSRCtrl               ),
+        .I_ALUCtrl              (I_ex_ALUCtrl               ),
+        .I_BRUCtrl              (I_ex_BRUCtrl               ),
+        .I_FWDCtrl_rs1          (I_ex_FWDCtrl_rs1           ),
+        .I_FWDCtrl_rs2          (I_ex_FWDCtrl_rs2           ),
+        .I_FWDCtrl_csr          (I_ex_FWDCtrl_csr           ),
+        .I_ALUSrcA_sel          (I_ex_ALUSrcA_sel           ),
+        .I_ALUSrcB_sel          (I_ex_ALUSrcB_sel           ),
+        .I_AGUSrc_sel           (I_ex_AGUSrc_sel            ),
+        .I_CSRSrc_sel           (I_ex_CSRSrc_sel            ),
+        .I_ls_valid             (I_ex_ls_valid              ),
+        .I_ls_type              (I_ex_ls_type               ),
 
-        .ls_valid_i             (idu_ls_valid_o             ),
-        .ls_type_i              (idu_ls_type_o              ),
+        .I_rs1_rdata            (I_ex_rs1_rdata             ),
+        .I_rs2_rdata            (I_ex_rs2_rdata             ),
+        .I_csr_rdata            (I_ex_csr_rdata             ),
 
-        .link_addr_i            (idu_link_addr_o            ),
+        .I_ls_rd_wdata          (I_ls_fwd_rd_wdata          ),
+        .I_wb_rd_wdata          (I_wb_fwd_rd_wdata          ),
 
-        //to exu
-        .inst_o                 (exu_inst_i                 ),
-        .inst_addr_o            (exu_inst_addr_i            ),
-        .reg1_rdata_o           (exu_reg1_rdata_i           ),
-        .reg2_rdata_o           (exu_reg2_rdata_i           ),
-        .reg_we_o               (exu_reg_we_i               ),
-        .reg_waddr_o            (exu_reg_waddr_i            ),
-        .offset_memory_o        (exu_offset_memory_i        ),
-        .csr_we_o               (exu_csr_we_i               ),   
-        .csr_waddr_o            (exu_csr_waddr_i            ),
-        .csr_rdata_o            (exu_csr_rdata_i            ),
-        .CSRCtrl_o              (exu_CSRCtrl_i              ),
-        .ALUCtrl_o              (exu_ALUCtrl_i              ),
+        .I_ls_csr_wdata         (I_ls_fwd_csr_wdata         ),
+        .I_wb_csr_wdata         (I_wb_fwd_csr_wdata         ),
 
-        .ls_valid_o             (exu_ls_valid_i             ),
-        .ls_type_o              (exu_ls_type_i              ),
+        .I_csr_re               (I_ex_csr_re                ),
+        .I_except               (I_ex_except                ),
 
-        .link_addr_o            (exu_link_addr_i            ),
-        .stall_i                (stall_o                    ),
-        .flush_i                (flush_o                    )
+        .O_inst                 (O_ex_inst                  ),
+        .O_inst_addr            (O_ex_inst_addr             ),
+        .O_rd_we                (O_ex_rd_we                 ),
+        .O_rd_waddr             (O_ex_rd_waddr              ),
+        .O_rd_wdata             (O_ex_rd_wdata              ),
+        .O_memory_addr          (O_ex_memory_addr           ),
+        .O_store_data           (O_ex_store_data            ),
+        .O_ls_valid             (O_ex_ls_valid              ),
+        .O_ls_type              (O_ex_ls_type               ),
+        .O_csr_we               (O_ex_csr_we                ),
+        .O_csr_waddr            (O_ex_csr_waddr             ),
+        .O_csr_wdata            (O_ex_csr_wdata             ),
+        .O_except               (O_ex_except                ),
 
-    );        
+        .O_bru_taken            (O_ex_bru_taken             ),
+        .O_bru_target           (O_ex_bru_target            ),
 
-    //EXU
-    exu exu0
-    (
-        .rst_n                  (rst_n                      ),
-
-        //from IDU/EXU                                       
-        .inst_i                 (exu_inst_i                 ),
-        .inst_addr_i            (exu_inst_addr_i            ),
-        .reg1_rdata_i           (exu_reg1_rdata_i           ),
-        .reg2_rdata_i           (exu_reg2_rdata_i           ),
-        .reg_we_i               (exu_reg_we_i               ),
-        .reg_waddr_i            (exu_reg_waddr_i            ),
-        .offset_memory_i        (exu_offset_memory_i        ),
-        .CSRCtrl_i              (exu_CSRCtrl_i              ),
-        .ALUCtrl_i              (exu_ALUCtrl_i              ),
-        .ls_valid_i             (exu_ls_valid_i             ),
-        .ls_type_i              (exu_ls_type_i              ),
-        .link_addr_i            (exu_link_addr_i            ),
-        .csr_we_i               (exu_csr_we_i               ),
-        .csr_waddr_i            (exu_csr_waddr_i            ),
-        .csr_rdata_i            (exu_csr_rdata_i            ),
-
-        //to EXU/LSU
-        .inst_o                 (exu_inst_o                 ),
-        .inst_addr_o            (exu_inst_addr_o            ),
-        .reg_we_o               (exu_reg_we_o               ),
-        .reg_waddr_o            (exu_reg_waddr_o            ),
-        .reg_wdata_o            (exu_reg_wdata_o            ),
-        .memory_addr_o          (exu_memory_addr_o          ),
-        .store_data_o           (exu_store_data_o           ),
-        .ls_valid_o             (exu_ls_valid_o             ),
-        .ls_type_o              (exu_ls_type_o              ),
-        .csr_we_o               (exu_csr_we_o               ),   
-        .csr_waddr_o            (exu_csr_waddr_o            ),
-        .csr_wdata_o            (exu_csr_wdata_o            ),
-
-        //to pipe_ctrl
-        .stallreq_o             (stallreq_from_exu          ),
-
-        //to id
-        .inst_is_load_o         (exu_inst_is_load           )
+        .O_stallreq             (stallreq_from_ex           )
     );
 
-    //EXU/LSU
-    exu_lsu exu_lsu0
+    lsu u0_lsu
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
-    
-        //from EXU
-        .inst_i                 (exu_inst_o                 ),
-        .inst_addr_i            (exu_inst_addr_o            ),
-        .reg_we_i               (exu_reg_we_o               ),
-        .reg_waddr_i            (exu_reg_waddr_o            ),
-        .reg_wdata_i            (exu_reg_wdata_o            ),
-        .memory_addr_i          (exu_memory_addr_o          ),
-        .store_data_i           (exu_store_data_o           ),
-        .ls_valid_i             (exu_ls_valid_o             ),
-        .ls_type_i              (exu_ls_type_o              ),
-        .csr_we_i               (exu_csr_we_o               ),
-        .csr_waddr_i            (exu_csr_waddr_o            ),
-        .csr_wdata_i            (exu_csr_wdata_o            ),
+        .rst                    (rst                        ),
 
-        //to LSU
-        .inst_o                 (lsu_inst_i                 ),
-        .inst_addr_o            (lsu_inst_addr_i            ),
-        .reg_we_o               (lsu_reg_we_i               ),
-        .reg_waddr_o            (lsu_reg_waddr_i            ),	
-        .reg_wdata_o            (lsu_reg_wdata_i            ),
-        .memory_addr_o          (lsu_memory_addr_i          ),
-        .store_data_o           (lsu_store_data_i           ),
-        .ls_valid_o             (lsu_ls_valid_i             ),
-        .ls_type_o              (lsu_ls_type_i              ),
-        .csr_we_o               (lsu_csr_we_i               ),   
-        .csr_waddr_o            (lsu_csr_waddr_i            ),
-        .csr_wdata_o            (lsu_csr_wdata_i            ),
-        .stall_i                (stall_o                    ),
-        .flush_i                (flush_o                    )
+        .I_inst                 (I_ls_inst                  ),
+        .I_inst_addr            (I_ls_inst_addr             ),
+        .I_rd_we                (I_ls_rd_we                 ),
+        .I_rd_waddr             (I_ls_rd_waddr              ),
+        .I_rd_wdata             (I_ls_rd_wdata              ),
+        .I_memory_addr          (I_ls_memory_addr           ),
+        .I_store_data           (I_ls_store_data            ),
+        .I_ls_valid             (I_ls_ls_valid              ),
+        .I_ls_type              (I_ls_ls_type               ),
+        .I_csr_we               (I_ls_csr_we                ),
+        .I_csr_waddr            (I_ls_csr_waddr             ),
+        .I_csr_wdata            (I_ls_csr_wdata             ),
+
+        .O_inst                 (O_ls_inst                  ),
+        .O_inst_addr            (O_ls_inst_addr             ),
+        .O_rd_we                (O_ls_rd_we                 ),
+        .O_rd_waddr             (O_ls_rd_waddr              ),
+        .O_rd_wdata             (O_ls_rd_wdata              ),
+        .O_csr_we               (O_ls_csr_we                ),
+        .O_csr_waddr            (O_ls_csr_waddr             ),
+        .O_csr_wdata            (O_ls_csr_wdata             ),
+
+        .O_stallreq             (stallreq_from_ls           ),
+
+        .O_dbus_req             (O_dbus_req                 ),
+        .O_dbus_we              (O_dbus_we                  ),
+        .O_dbus_addr            (O_dbus_addr                ),
+        .O_dbus_data            (O_dbus_data                ),
+        .O_dbus_mask            (O_dbus_mask                ),
+        .I_dbus_data            (I_dbus_data                )
     );
 
-    //LSU
-    lsu lsu0
-    (
-        .rst_n                  (rst_n                      ),
 
-        //from EXU/LSU
-        .inst_i                 (lsu_inst_i                 ),
-        .inst_addr_i            (lsu_inst_addr_i            ),
-        .reg_we_i               (lsu_reg_we_i               ),
-        .reg_waddr_i            (lsu_reg_waddr_i            ),
-        .reg_wdata_i            (lsu_reg_wdata_i            ),
-        .memory_addr_i          (lsu_memory_addr_i          ), 
-        .store_data_i           (lsu_store_data_i           ),   
-        .ls_valid_i             (lsu_ls_valid_i             ),
-        .ls_type_i              (lsu_ls_type_i              ),
-        .csr_we_i               (lsu_csr_we_i               ),
-        .csr_waddr_i            (lsu_csr_waddr_i            ),
-        .csr_wdata_i            (lsu_csr_wdata_i            ),
-
-        //to LSU/WBU
-        .inst_o                 (lsu_inst_o                 ),
-        .inst_addr_o            (lsu_inst_addr_o            ),
-        .reg_we_o               (lsu_reg_we_o               ),
-        .reg_waddr_o            (lsu_reg_waddr_o            ),
-        .reg_wdata_o            (lsu_reg_wdata_o            ),
-        .csr_we_o               (lsu_csr_we_o               ),   
-        .csr_waddr_o            (lsu_csr_waddr_o            ),
-        .csr_wdata_o            (lsu_csr_wdata_o            ),
-
-        //to dbus
-        .dbus_req_o             (dbus_req_o                 ),
-        .dbus_we_o              (dbus_we_o                  ),        
-        .dbus_addr_o            (dbus_addr_o                ),
-        .dbus_data_i            (dbus_data_i                ),
-        .dbus_data_o            (dbus_data_o                ),
-        .dbus_sel_o             (dbus_sel_o                 )
-    );
-
-    //LSU/WBU
-    lsu_wbu lsu_wbu0
+    csr_reg u_csr_reg
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        //from LSU       
-        .inst_i                 (lsu_inst_o                 ),
-        .inst_addr_i            (lsu_inst_addr_o            ),   
-        .reg_we_i               (lsu_reg_we_o               ),
-        .reg_waddr_i            (lsu_reg_waddr_o            ),
-        .reg_wdata_i            (lsu_reg_wdata_o            ),
-        .csr_we_i               (lsu_csr_we_o               ),
-        .csr_waddr_i            (lsu_csr_waddr_o            ),
-        .csr_wdata_i            (lsu_csr_wdata_o            ),
+        .I_raddr                (O_csr_raddr                ),
+        .O_rdata                (I_csr_rdata                ),
 
-        //to WBU 
-        .inst_o                 (wbu_inst_i                 ),
-        .inst_addr_o            (wbu_inst_addr_i            ),
-        .reg_we_o               (wbu_reg_we_i               ),
-        .reg_waddr_o            (wbu_reg_waddr_i            ),
-        .reg_wdata_o            (wbu_reg_wdata_i            ),
-        .csr_we_o               (wbu_csr_we_i               ),   
-        .csr_waddr_o            (wbu_csr_waddr_i            ),
-        .csr_wdata_o            (wbu_csr_wdata_i            ),
+        .I_we                   (I_wb_csr_we                ),
+        .I_waddr                (I_wb_csr_waddr             ),
+        .I_wdata                (I_wb_csr_wdata             ),
 
-        .stall_i                (stall_o                    ),
-        .flush_i                (flush_o                    )
-    );  
+        .I_clint_we             (clint_we                   ),
+        .I_clint_waddr          (clint_waddr                ),
+        .I_clint_wdata          (clint_wdata                ),
 
-    //PIPE_CTRL  
-    pipe_ctrl pipe_ctrl0  
-    (   
-        .rst_n                  (rst_n                      ),
-        .stallreq_from_ifu      (stallreq_from_ifu          ),
-        .stallreq_from_idu      (stallreq_from_idu          ),
-        .stallreq_from_exu      (stallreq_from_exu          ),
-        .stallreq_from_lsu      (stallreq_from_lsu          ),
+        .O_csr_mtvec            (csr_mtvec                  ),
+        .O_csr_mepc             (csr_mepc                   ),
+        .O_csr_mstatus          (csr_mstatus                ),
+        
+        .O_global_int_en        (csr_global_int_en          )
+    );
+
+    clint u_clint
+    (
+        .clk                    (clk                        ),
+        .rst                    (rst                        ),
+
+        .I_int                  (I_int                      ),
+
+        .I_except               (I_clint_except             ),
+        .I_except_addr          (I_ls_inst_addr             ),
+
+        .I_next_addr            (O_ex_inst_addr             ),
+
+        .I_csr_mtvec            (csr_mtvec                  ),
+        .I_csr_mepc             (csr_mepc                   ),
+        .I_csr_mstatus          (csr_mstatus                ),
+        .I_global_int_en        (csr_global_int_en          ),
+
+        .O_csr_we               (clint_we                   ),
+        .O_csr_waddr            (clint_waddr                ),
+        .O_csr_wdata            (clint_wdata                ),
+
+        .O_stallreq             (stallreq_from_clint        ),
+        .O_flush                (O_flush                    ),
+        .O_flush_addr           (O_flush_addr               )
+    );
+
+
+    //------------------------------------------------------------------------
+    // PIPELINE
+    //------------------------------------------------------------------------
+
+    pipe_ctrl u_pipe_ctrl
+    (
+        .rst                    (rst                        ),
+        .stallreq_from_if       (stallreq_from_if           ),
+        .stallreq_from_dec      (stallreq_from_dec          ),
+        .stallreq_from_ex       (stallreq_from_ex           ),
+        .stallreq_from_ls       (stallreq_from_ls           ),
         .stallreq_from_clint    (stallreq_from_clint        ),
-        .haltreq_from_jtag      (jtag_haltreq               ),
-        .stall_o                (stall_o                    ),
-        .int_assert_i           (int_assert                 ),
-        .int_addr_i             (int_addr                   ),
-        .flush_o                (flush_o                    ),
-        .flush_addr_o           (flush_addr_o               )
+        .stallreq_from_jtag     (I_jtag_haltreq             ),
+
+        .Stall                  (Stall                      ),
+        .Kill                   (Kill                       )
     );
 
-    //CSR_REG
-    csr_reg csr_reg0
+    pipeline_if_dec u0_pipeline_if_dec
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        //from idu
-        .re_i                   (csr_re_o                   ),
-        .raddr_i                (csr_raddr_o                ),
-        //to idu
-        .rdata_o                (csr_rdata_i                ),
+        .I_inst                 (O_if_inst                  ),
+        .I_inst_addr            (O_if_inst_addr             ),
 
-        //form lsu_wb
-        .we_i                   (wbu_csr_we_i               ),
-        .waddr_i                (wbu_csr_waddr_i            ),
-        .wdata_i                (wbu_csr_wdata_i            ),
-        .csr_timer_int_o        (                           ),
+        .O_inst                 (I_dec_inst                 ),
+        .O_inst_addr            (I_dec_inst_addr            ),
 
-
-        //from clint
-        .clint_we_i             (clint_we                   ),
-        .clint_waddr_i          (clint_waddr                ),
-        .clint_wdata_i          (clint_wdata                ),
-
-        //to clint
-        .csr_mtvec_o            (csr_mtvec                  ),
-        .csr_mepc_o             (csr_mepc                   ),
-        .csr_mstatus_o          (csr_mstatus                ),
-
-        .global_int_en_o        (csr_global_int_en          )
+        .I_bru_taken            (O_ex_bru_taken             ),
+        .I_stall                (Stall[`Stall_if_dec]       ),
+        .I_kill                 (Kill[`Kill_if_dec]         ),
+        .I_flush                (O_flush                    )
     );
 
 
-    //CLINT
-    clint clint0
+    pipeline_dec_ex u0_pipeline_dec_ex
     (
         .clk                    (clk                        ),
-        .rst_n                  (rst_n                      ),
+        .rst                    (rst                        ),
 
-        //from perip
-        .int_i                  (int_i                      ),
+        .I_inst                 (O_dec_inst                 ),
+        .I_inst_addr            (O_dec_inst_addr            ),
+        .I_rs1_rdata            (O_dec_rs1_rdata            ),
+        .I_rs2_rdata            (O_dec_rs2_rdata            ),
+        .I_imm                  (O_dec_imm                  ),
+        .I_rd_we                (O_dec_rd_we                ),
+        .I_rd_waddr             (O_dec_rd_waddr             ),
+        .I_csr_we               (O_dec_csr_we               ),
+        .I_csr_waddr            (O_dec_csr_waddr            ),
+        .I_csr_rdata            (O_dec_csr_rdata            ),
+        .I_FWDCtrl_rs1          (O_dec_FWDCtrl_rs1          ),
+        .I_FWDCtrl_rs2          (O_dec_FWDCtrl_rs2          ),
+        .I_FWDCtrl_csr          (O_dec_FWDCtrl_csr          ),
+        .I_CSRCtrl              (O_dec_CSRCtrl              ),
+        .I_ALUCtrl              (O_dec_ALUCtrl              ),
+        .I_BRUCtrl              (O_dec_BRUCtrl              ),
+        .I_ALUSrcA_sel          (O_dec_ALUSrcA_sel          ),
+        .I_ALUSrcB_sel          (O_dec_ALUSrcB_sel          ),
+        .I_AGUSrc_sel           (O_dec_AGUSrc_sel           ),
+        .I_CSRSrc_sel           (O_dec_CSRSrc_sel           ),
+        .I_ls_valid             (O_dec_ls_valid             ),
+        .I_ls_type              (O_dec_ls_type              ),
+        .I_csr_re               (O_dec_csr_re               ),
+        .I_except               (O_dec_except               ),
 
-        //from exu_lsu
-        .inst_i                 (lsu_inst_i                 ),
-        .inst_addr_i            (lsu_inst_addr_i            ),
+        .O_inst                 (I_ex_inst                  ),
+        .O_inst_addr            (I_ex_inst_addr             ),
+        .O_rs1_rdata            (I_ex_rs1_rdata             ),
+        .O_rs2_rdata            (I_ex_rs2_rdata             ),
+        .O_imm                  (I_ex_imm                   ),
+        .O_rd_we                (I_ex_rd_we                 ),
+        .O_rd_waddr             (I_ex_rd_waddr              ),
+        .O_csr_we               (I_ex_csr_we                ),
+        .O_csr_waddr            (I_ex_csr_waddr             ),
+        .O_csr_rdata            (I_ex_csr_rdata             ),
+        .O_FWDCtrl_rs1          (I_ex_FWDCtrl_rs1           ),
+        .O_FWDCtrl_rs2          (I_ex_FWDCtrl_rs2           ),
+        .O_FWDCtrl_csr          (I_ex_FWDCtrl_csr           ),
+        .O_CSRCtrl              (I_ex_CSRCtrl               ),
+        .O_ALUCtrl              (I_ex_ALUCtrl               ),
+        .O_BRUCtrl              (I_ex_BRUCtrl               ),
+        .O_fwd_rd_we            (I_ex_fwd_rd_we             ),
+        .O_fwd_rd_waddr         (I_ex_fwd_rd_waddr          ),
+        .O_fwd_csr_we           (I_ex_fwd_csr_we            ),
+        .O_fwd_csr_waddr        (I_ex_fwd_csr_waddr         ),
+        .O_ALUSrcA_sel          (I_ex_ALUSrcA_sel           ),
+        .O_ALUSrcB_sel          (I_ex_ALUSrcB_sel           ),
+        .O_AGUSrc_sel           (I_ex_AGUSrc_sel            ),
+        .O_CSRSrc_sel           (I_ex_CSRSrc_sel            ),
+        .O_ls_valid             (I_ex_ls_valid              ),
+        .O_ls_type              (I_ex_ls_type               ),
+        .O_csr_re               (I_ex_csr_re                ),
+        .O_except               (I_ex_except                ),
 
-        .memory_misalign_i      (lsu_memory_misalign_o      ),
-
-        .stall_i                (stall_o                    ),
-
-        //from csr_reg
-        .csr_mtvec_i            (csr_mtvec                  ),
-        .csr_mepc_i             (csr_mepc                   ),
-        .csr_mstatus_i          (csr_mstatus                ),
-
-        .global_int_en_i        (csr_global_int_en          ),
-
-        //to csr_reg
-        .csr_we_o               (clint_we                   ),
-        .csr_waddr_o            (clint_waddr                ),
-        .csr_wdata_o            (clint_wdata                ),
-
-        //to pipe_ctrl
-        .stallreq_o             (stallreq_from_clint        ),
-        .int_assert_o           (int_assert                 ),
-        .int_addr_o             (int_addr                   )
+        .I_bru_taken            (O_ex_bru_taken             ),
+        .I_stall                (Stall[`Stall_dec_ex]       ),
+        .I_kill                 (Kill[`Kill_dec_ex]         ),
+        .I_flush                (O_flush                    )
     );
+
+    pipeline_ex_ls u0_pipeline_ex_ls
+    (
+        .clk                    (clk                        ),
+        .rst                    (rst                        ),
+
+        .I_inst                 (O_ex_inst                  ),
+        .I_inst_addr            (O_ex_inst_addr             ),
+        .I_rd_we                (O_ex_rd_we                 ),
+        .I_rd_waddr             (O_ex_rd_waddr              ),
+        .I_rd_wdata             (O_ex_rd_wdata              ),
+        .I_memory_addr          (O_ex_memory_addr           ),
+        .I_store_data           (O_ex_store_data            ),
+        .I_ls_valid             (O_ex_ls_valid              ),
+        .I_ls_type              (O_ex_ls_type               ),
+        .I_csr_we               (O_ex_csr_we                ),
+        .I_csr_waddr            (O_ex_csr_waddr             ),
+        .I_csr_wdata            (O_ex_csr_wdata             ),
+        .I_except               (O_ex_except                ),
+
+        .O_inst                 (I_ls_inst                  ),
+        .O_inst_addr            (I_ls_inst_addr             ),
+        .O_rd_we                (I_ls_rd_we                 ),
+        .O_rd_waddr             (I_ls_rd_waddr              ),
+        .O_rd_wdata             (I_ls_rd_wdata              ),
+        .O_memory_addr          (I_ls_memory_addr           ),
+        .O_store_data           (I_ls_store_data            ),
+        .O_ls_valid             (I_ls_ls_valid              ),
+        .O_ls_type              (I_ls_ls_type               ),
+        .O_csr_we               (I_ls_csr_we                ),
+        .O_csr_waddr            (I_ls_csr_waddr             ),
+        .O_csr_wdata            (I_ls_csr_wdata             ),
+        .O_fwd_rd_we            (I_ls_fwd_rd_we             ),
+        .O_fwd_rd_waddr         (I_ls_fwd_rd_waddr          ),
+        .O_fwd_rd_wdata         (I_ls_fwd_rd_wdata          ),
+        .O_fwd_csr_we           (I_ls_fwd_csr_we            ),
+        .O_fwd_csr_waddr        (I_ls_fwd_csr_waddr         ),
+        .O_fwd_csr_wdata        (I_ls_fwd_csr_wdata         ),
+        .O_except               (I_clint_except             ),
+
+        .I_stall                (Stall[`Stall_ex_ls]        ),
+        .I_kill                 (Kill[`Kill_ex_ls]          ),
+        .I_flush                (O_flush                    )
+    );
+
+    pipeline_ls_wb u0_pipeline_ls_wb
+    (
+        .clk                    (clk                        ),
+        .rst                    (rst                        ),
+
+        .I_inst                 (O_ls_inst                  ),
+        .I_inst_addr            (O_ls_inst_addr             ),
+        .I_rd_we                (O_ls_rd_we                 ),
+        .I_rd_waddr             (O_ls_rd_waddr              ),
+        .I_rd_wdata             (O_ls_rd_wdata              ),
+        .I_csr_we               (O_ls_csr_we                ),
+        .I_csr_waddr            (O_ls_csr_waddr             ),
+        .I_csr_wdata            (O_ls_csr_wdata             ),
+
+        .O_inst                 (I_wb_inst                  ),
+        .O_inst_addr            (I_wb_inst_addr             ),
+        .O_rd_we                (I_wb_rd_we                 ),
+        .O_rd_waddr             (I_wb_rd_waddr              ),
+        .O_rd_wdata             (I_wb_rd_wdata              ),
+        .O_csr_we               (I_wb_csr_we                ),
+        .O_csr_waddr            (I_wb_csr_waddr             ),
+        .O_csr_wdata            (I_wb_csr_wdata             ),
+        .O_fwd_rd_wdata         (I_wb_fwd_rd_wdata          ),
+        .O_fwd_csr_wdata        (I_wb_fwd_csr_wdata         ),
+
+        .I_stall                (Stall[`Stall_ls_wb]        ),
+        .I_stallreq_from_lsu    (stallreq_from_ls           ),
+        .I_kill                 (Kill[`Kill_ls_wb]          ),
+        .I_flush                (O_flush                    )
+    );
+
 
 endmodule //riscv_ic

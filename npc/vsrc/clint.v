@@ -1,42 +1,33 @@
 `include "defines.v"
 
-//core local interruptor module
-//核心中断管理、仲裁模块
+//------------------------------------------------------------------------
+// 核心中断管理
+//------------------------------------------------------------------------
+
 module clint
 (
     input   wire                        clk,
-    input   wire                        rst_n,
+    input   wire                        rst,
 
-    //外部信号
-    input   wire    [`INT_BUS       ]   int_i,              //中断输入信号
+    input   wire    [`INT_BUS       ]   I_int,
 
-    //from exu_lsu
-    input   wire    [`InstBus       ]   inst_i,             //指令内容
-    input   wire    [`InstAddrBus   ]   inst_addr_i,        //指令地址
+    input   wire    [`Except_Bus    ]   I_except,
+    input   wire    [`InstAddrBus   ]   I_except_addr,
 
-    //from lsu
-    input   wire                        memory_misalign_i,  //字节对其检查
+    input   wire    [`InstAddrBus   ]   I_next_addr,        //下一个指令，用以判断是否当前指令地址空泡
 
-    //from pipe_ctrl
-    input   wire    [`StallBus      ]   stall_i,            //流水线暂停标志
+    input   wire    [`CSRDataBus    ]   I_csr_mtvec,        //mtvec寄存器
+    input   wire    [`CSRDataBus    ]   I_csr_mepc,         //mepc寄存器
+    input   wire    [`CSRDataBus    ]   I_csr_mstatus,      //mstatus寄存器
+    input   wire                        I_global_int_en,    //全局中断使能标志
 
-    //from csr_reg
-    input   wire    [`RegBus        ]   csr_mtvec_i,        //mtvec寄存器
-    input   wire    [`RegBus        ]   csr_mepc_i,         //mepc寄存器
-    input   wire    [`RegBus        ]   csr_mstatus_i,      //mstatus寄存器
+    output  wire                        O_csr_we,           //写CSR寄存器标志
+    output  wire    [`CSRAddrBus    ]   O_csr_waddr,        //写CSR寄存器地址
+    output  wire    [`CSRDataBus    ]   O_csr_wdata,        //写CSR寄存器数据
 
-    //from csr
-    input   wire                        global_int_en_i,    //全局中断使能标志
-
-    //to csr_reg
-    output  wire                        csr_we_o,           //写CSR寄存器标志
-    output  wire    [`MemAddrBus    ]   csr_waddr_o,        //写CSR寄存器地址
-    output  wire    [`RegBus        ]   csr_wdata_o,        //写CSR寄存器数据
-
-    //to pipe_ctrl
-    output  wire                        stallreq_o,         //流水线暂停标志
-    output  wire                        int_assert_o,       //中断标志
-    output  wire    [`InstAddrBus   ]   int_addr_o          //中断入口地址
+    output  wire                        O_stallreq,         //流水线暂停标志
+    output  wire                        O_flush,            //刷新标志
+    output  wire    [`InstAddrBus   ]   O_flush_addr        //刷新地址
 
 );
 
@@ -58,16 +49,39 @@ module clint
     reg [`InstAddrBus] inst_addr;
     reg [31:0] cause;
 
+    wire is_ecall  = I_except[`EXCPT_ECALL ];
+    wire is_ebreak = I_except[`EXCPT_EBREAK];
+    wire is_mret   = I_except[`EXCPT_MRET  ];
+
+    reg ext_int_valid;
+    reg [`INT_BUS] int_r;
+    reg [`InstAddrBus] ext_int_addr;
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            ext_int_valid <= `Disable;
+            ext_int_addr <= `ZeroWord;
+            int_r <= `INT_NONE;
+        end else if(I_next_addr != `ZeroWord) begin
+            ext_int_valid <= `Enable;
+            ext_int_addr <= I_next_addr;
+            int_r <= `INT_NONE;
+        end else begin
+            ext_int_valid <= `Disable;
+            ext_int_addr <= `ZeroWord;
+            int_r <= I_int;
+        end
+    end
+
     //中断仲裁逻辑
     always @(*) begin
-        if(!rst_n) begin
+        if(rst) begin
             int_state = S_INT_IDLE;
         end else begin
-            if(inst_i == `RV_ECALL || inst_i == `RV_EBREAK || memory_misalign_i) begin
+            if(is_ecall || is_ebreak) begin
                 int_state = S_INT_SYNC_ASSERT;
-            end else if(int_i != `INT_NONE && global_int_en_i == `True) begin
+            end else if(ext_int_valid && (|I_int || |int_r) && I_global_int_en) begin
                 int_state = S_INT_ASYNC_ASSERT;
-            end else if(inst_i == `RV_MRET) begin
+            end else if(is_mret) begin
                 int_state = S_INT_MRET;
             end else begin
                 int_state = S_INT_IDLE;
@@ -76,8 +90,8 @@ module clint
     end
 
     //写CSR寄存器状态切换
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or posedge  rst) begin
+        if(rst) begin
             csr_state <= S_CSR_IDLE;
             cause <= `ZeroWord;
             inst_addr <= `ZeroWord;
@@ -88,15 +102,15 @@ module clint
                         //同步中断
                         S_INT_SYNC_ASSERT: begin
                             csr_state <= S_CSR_MEPC;
-                            inst_addr <= inst_addr_i;
-                            cause <= (inst_i == `RV_EBREAK)? 32'd3 :
-                                     (inst_i == `RV_ECALL)? 32'd11 :
-                                     (memory_misalign_i)? 32'd4 : 32'd10;
+                            inst_addr <= I_except_addr;
+                            cause <= (is_ebreak)? 32'd3 :
+                                     (is_ecall)? 32'd11 :
+                                     32'd10;
                         end
                         //异步中断
                         S_INT_ASYNC_ASSERT: begin
                             csr_state <= S_CSR_MEPC;
-                            inst_addr <= inst_addr_i;
+                            inst_addr <= ext_int_addr;    
                             //定时器中断
                             cause <= 32'h80000004;
                         end
@@ -116,62 +130,64 @@ module clint
         end
     end
 
-    reg csr_we;  
-    reg [`MemAddrBus] csr_waddr;
-    reg [`RegBus] csr_wdata;
-    
+    reg csr_we;
+    reg [`CSRAddrBus] csr_waddr;
+    reg [`CSRDataBus] csr_wdata;
+
 
     //发出中断信号前，暂停流水线，写CSR寄存器
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
             csr_we <= `Disable;
-            csr_waddr <= `ZeroWord;
+            csr_waddr <= 12'b0;
             csr_wdata <= `ZeroWord;
         end else begin
             case(csr_state)
                 //将mepc寄存器的值设为当前指令地址
                 S_CSR_MEPC: begin
                     csr_we <= `Enable;
-                    csr_waddr <= {20'h0, `CSR_Addr_MEPC};
+                    csr_waddr <= `CSR_Addr_MEPC;
                     csr_wdata <= inst_addr;
                 end
                 //关闭全局中断
                 S_CSR_MSTATUS: begin
                     csr_we <= `Enable;
-                    csr_waddr <= {20'h0, `CSR_Addr_MSTATUS};
-                    csr_wdata <= {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]};
+                    csr_waddr <= `CSR_Addr_MSTATUS;
+                    csr_wdata <= {I_csr_mstatus[31:8], I_csr_mstatus[3], I_csr_mstatus[6:4], 1'b0, I_csr_mstatus[2:0]};
                 end
                 //写中断产生的原因
                 S_CSR_MCAUSE: begin
                     csr_we <= `Enable;
-                    csr_waddr <= {20'h0, `CSR_Addr_MCAUSE};
+                    csr_waddr <= `CSR_Addr_MCAUSE;
                     csr_wdata <= cause;
                 end
                 //中断返回
                 S_CSR_MSTATUS_MRET: begin
                     csr_we <= `Enable;
-                    csr_waddr <= {20'h0, `CSR_Addr_MSTATUS};
-                    csr_wdata <= {csr_mstatus_i[31:8], 1'b1, csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
+                    csr_waddr <= `CSR_Addr_MSTATUS;
+                    csr_wdata <= {I_csr_mstatus[31:8], 1'b1, I_csr_mstatus[6:4], I_csr_mstatus[7], I_csr_mstatus[2:0]};
                 end
                 default: begin
                     csr_we <= `Disable;
-                    csr_waddr <= `ZeroWord;
+                    csr_waddr <= 12'b0;
                     csr_wdata <= `ZeroWord;
                 end
             endcase
         end
     end
 
-    //*********************// 输出 //*********************//
+    //------------------------------------------------------------------------
+    // 输出
+    //------------------------------------------------------------------------
 
-    assign csr_we_o = csr_we;
-    assign csr_waddr_o = csr_waddr;
-    assign csr_wdata_o = csr_wdata;
+    assign O_csr_we = csr_we;
+    assign O_csr_waddr = csr_waddr;
+    assign O_csr_wdata = csr_wdata;
 
-    assign stallreq_o = (int_state != S_INT_IDLE) | (csr_state != S_CSR_IDLE);
-    assign int_assert_o = (csr_state == S_CSR_MCAUSE) | (csr_state == S_CSR_MSTATUS_MRET);
-    assign int_addr_o = (csr_state == S_CSR_MCAUSE)? csr_mtvec_i:
-                        (csr_state == S_CSR_MSTATUS_MRET)? csr_mepc_i:
+    assign O_stallreq = (int_state != S_INT_IDLE) | (csr_state != S_CSR_IDLE);
+    assign O_flush = (csr_state == S_CSR_MCAUSE) | (csr_state == S_CSR_MSTATUS_MRET);
+    assign O_flush_addr = (csr_state == S_CSR_MCAUSE)? I_csr_mtvec:
+                        (csr_state == S_CSR_MSTATUS_MRET)? I_csr_mepc:
                         `ZeroWord;
 
 endmodule

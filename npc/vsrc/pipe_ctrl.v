@@ -1,58 +1,38 @@
 `include "defines.v"
 
+//------------------------------------------------------------------------
+// 流水线控制单元
+//------------------------------------------------------------------------
+
 module pipe_ctrl
 (
-    input   wire                        rst_n,
+    input   wire                        rst,
 
-    input   wire                        stallreq_from_ifu,    //if阶段暂停请求, 来自axi_master模块
-    input   wire                        stallreq_from_idu,    //id阶段暂停请求
-    input   wire                        stallreq_from_exu,    //ex阶段暂停请求
-    input   wire                        stallreq_from_lsu,    //mem阶段暂停请求
-    input   wire                        stallreq_from_clint,  //clint阶段暂停请求
-    //from jtag
-    input   wire                        haltreq_from_jtag,
+    input   wire                        stallreq_from_if,
+    input   wire                        stallreq_from_dec,
+    input   wire                        stallreq_from_ex,
+    input   wire                        stallreq_from_ls,
+    input   wire                        stallreq_from_clint,
+    input   wire                        stallreq_from_jtag,
 
-    output  wire    [`StallBus      ]   stall_o,
-
-
-    //from clint
-    input   wire                        int_assert_i,       //中断标志
-    input   wire    [`InstAddrBus   ]   int_addr_i,         //中断入口地址
-
-
-    output  wire                        flush_o,
-    output  wire    [`InstAddrBus   ]   flush_addr_o
+    output  wire    [`StallBus      ]   Stall,
+    output  wire    [`KillBus       ]   Kill
 );
 
-    reg [`StallBus] stall;
-    always @(*) begin
-        if(!rst_n) begin
-            stall = `StallWidth'b00000;
-        end else if(stallreq_from_clint == `Stop) begin  //暂停整条流水线
-            stall = `StallWidth'b11111;                       
-        end else if(stallreq_from_lsu == `Stop) begin   
-            stall = `StallWidth'b11111;                               
-        end else if(stallreq_from_exu == `Stop) begin
-            stall = `StallWidth'b01111;
-        end else if(stallreq_from_idu == `Stop) begin
-            stall = `StallWidth'b00111;
-        end else if(stallreq_from_ifu == `Stop) begin
-            stall = `StallWidth'b00011;
-        end else if(haltreq_from_jtag == `Stop) begin   //暂停整条流水线
-            stall = `StallWidth'b11111;
-        end else begin
-            stall = `StallWidth'b00000;
-        end    //if
-    end      //always
+    assign Stall =  stallreq_from_clint   ?    `StallWidth'b111111 :
+                    stallreq_from_ls      ?    `StallWidth'b111111 :
+                    stallreq_from_ex      ?    `StallWidth'b111111 :
+                    stallreq_from_dec     ?    `StallWidth'b000111 :
+                    stallreq_from_if      ?    `StallWidth'b000011 :
+                    stallreq_from_jtag    ?    `StallWidth'b111111 :
+                                               `StallWidth'b000000 ;
 
-    //*********************// 输出 //*********************//
-    assign stall_o = stall;
-    assign flush_o = stallreq_from_clint | int_assert_i;
-    assign flush_addr_o = int_assert_i? int_addr_i : `ZeroWord;
+    assign Kill[`Kill_if_dec] = (Stall[`Stall_if_dec] & ~Stall[`Stall_dec_ex]);
+    assign Kill[`Kill_dec_ex] = (Stall[`Stall_dec_ex] & ~Stall[`Stall_ex_ls]);
+    assign Kill[`Kill_ex_ls ] = (Stall[`Stall_ex_ls] & ~Stall[`Stall_ls_wb]);
+    assign Kill[`Kill_ls_wb ] = (Stall[`Stall_ls_wb] & ~Stall[`Stall_wb]);
 
-
-
-endmodule //pipe_ctrl
+endmodule
 
 
 

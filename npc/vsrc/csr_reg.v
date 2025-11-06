@@ -1,78 +1,67 @@
 `include "defines.v"
 
-//如果要使用和维护浮点单元，可能要添加mstatus的fs域？后面修改
+//------------------------------------------------------------------------
+// CSR寄存器
+//------------------------------------------------------------------------
 
 module csr_reg
 (
     input   wire                        clk,
-    input   wire                        rst_n,
+    input   wire                        rst,
 
-    //from idu
-    input   wire                        re_i,               //idu模块读寄存器标志
-    input   wire    [`MemAddrBus    ]   raddr_i,            //idu模块读寄存器地址
-    //to idu
-    output  wire    [`RegBus        ]   rdata_o,            //输出寄存器数据
+    input   wire    [`CSRAddrBus    ]   I_raddr,
+    output  wire    [`CSRDataBus    ]   O_rdata,
 
-    //form lsu_wbu
-    input   wire                        we_i,               //lsu_wbu模块写寄存器标志
-    input   wire    [`MemAddrBus    ]   waddr_i,            //lsu_wbu模块写寄存器地址
-    input   wire    [`RegBus        ]   wdata_i,            //lsu_wbu模块写寄存器数据
+    input   wire                        I_we,
+    input   wire    [`CSRAddrBus    ]   I_waddr,
+    input   wire    [`CSRDataBus    ]   I_wdata,
 
-    //from clint
-    input   wire                        clint_we_i,         //clint模块写寄存器标志
-    input   wire    [`MemAddrBus    ]   clint_waddr_i,      //clint模块写寄存器地址
-    input   wire    [`RegBus        ]   clint_wdata_i,      //clint模块写寄存器数据
+    input   wire                        I_clint_we,           //写CSR寄存器标志
+    input   wire    [`CSRAddrBus    ]   I_clint_waddr,        //写CSR寄存器地址
+    input   wire    [`CSRDataBus    ]   I_clint_wdata,        //写CSR寄存器数据
 
-    //to clint
-    output  wire    [`RegBus        ]   csr_mtvec_o,        //mtvec
-    output  wire    [`RegBus        ]   csr_mepc_o,         //mepc
-    output  wire    [`RegBus        ]   csr_mstatus_o,      //mstatus
-    output  wire                        csr_timer_int_o,    //内部定时器中断
-
-    output  wire                        global_int_en_o     //全局中断使能标志
+    output  wire    [`CSRDataBus    ]   O_csr_mtvec,        //mtvec寄存器
+    output  wire    [`CSRDataBus    ]   O_csr_mepc,         //mepc寄存器
+    output  wire    [`CSRDataBus    ]   O_csr_mstatus,      //mstatus寄存器
+    output  wire                        O_global_int_en      //全局中断使能标志
 
 );
 
-    reg [`RegBus] mstatus;
-    reg [`RegBus] mie;
-    reg [`RegBus] mtvec;
-    reg [`RegBus] mscratch;
-    reg [`RegBus] mepc;
-    reg [`RegBus] mcause;
-    reg [`DoubleRegBus] mtimecmp;   //未定定义地址，未实现
-    reg [`DoubleRegBus] cycle;
+    reg [`CSRDataBus] mstatus;
+    reg [`CSRDataBus] mie;
+    reg [`CSRDataBus] mtvec;
+    reg [`CSRDataBus] mscratch;
+    reg [`CSRDataBus] mepc;
+    reg [`CSRDataBus] mcause;
+    // reg [`DoubleCSRDataBus] mtimecmp;   //未定义地址，未实现
+    reg [`DoubleCSRDataBus] cycle;
 
 
     //cycle counter
     //复位撤销后就一直计数
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
             cycle <= {`ZeroWord, `ZeroWord};
         end else begin
             cycle <= cycle + 1'b1;
         end
     end
 
-    reg csr_timer_int;
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
-            csr_timer_int <= `INT_DEASSERT;
-        end else begin
-            if(mtimecmp != {`ZeroWord, `ZeroWord} && cycle == mtimecmp) begin
-                csr_timer_int <= `INT_ASSERT;
-            end
-        end
-    end
+    // reg csr_timer_int;
+    // always @(posedge clk or posedge rst) begin
+    //     if(rst) begin
+    //         csr_timer_int <= `INT_DEASSERT;
+    //     end else begin
+    //         if(mtimecmp != {`ZeroWord, `ZeroWord} && cycle == mtimecmp) begin
+    //             csr_timer_int <= `INT_ASSERT;
+    //         end
+    //     end
+    // end
 
     //write reg
     //写寄存器操作
-
-    wire we = we_i | clint_we_i;
-    wire [`MemAddrBus] waddr = (we_i)? waddr_i : clint_waddr_i;
-    wire [`RegBus] wdata = (we_i)? wdata_i : clint_wdata_i;
-
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
             mtvec <= `ZeroWord;
             mcause <= `ZeroWord;
             mepc <= `ZeroWord;
@@ -80,16 +69,28 @@ module csr_reg
             mstatus <= `ZeroWord;
             mscratch <= `ZeroWord;
         end else begin
-            if(we == `Enable) begin
-                case(waddr[11:0])
-                    `CSR_Addr_MSTATUS: mstatus <= wdata;
-                    `CSR_Addr_MIE: mie <= wdata;
-                    `CSR_Addr_MTVEC: mtvec <= wdata;
-                    `CSR_Addr_MSCRATCH: mscratch <= wdata;
-                    `CSR_Addr_MEPC: mepc <= wdata;
-                    `CSR_Addr_MCAUSE: mcause <= wdata;
+            if(I_clint_we) begin
+                case(I_clint_waddr)
+                    `CSR_Addr_MSTATUS:  mstatus     <= I_clint_wdata;
+                    `CSR_Addr_MIE:      mie         <= I_clint_wdata;
+                    `CSR_Addr_MTVEC:    mtvec       <= I_clint_wdata;
+                    `CSR_Addr_MSCRATCH: mscratch    <= I_clint_wdata;
+                    `CSR_Addr_MEPC:     mepc        <= I_clint_wdata;
+                    `CSR_Addr_MCAUSE:   mcause      <= I_clint_wdata;
                     default: begin end
                 endcase
+            end else begin    
+                if(I_we) begin
+                    case(I_waddr)
+                        `CSR_Addr_MSTATUS:  mstatus     <= I_wdata;
+                        `CSR_Addr_MIE:      mie         <= I_wdata;
+                        `CSR_Addr_MTVEC:    mtvec       <= I_wdata;
+                        `CSR_Addr_MSCRATCH: mscratch    <= I_wdata;
+                        `CSR_Addr_MEPC:     mepc        <= I_wdata;
+                        `CSR_Addr_MCAUSE:   mcause      <= I_wdata;
+                        default: begin end
+                    endcase
+                end
             end
         end
     end
@@ -97,34 +98,35 @@ module csr_reg
 
     //read reg
     //idu模块读CSR寄存器
-    reg [`RegBus]   rdata;
+    reg [`CSRDataBus]   rdata1;
     always @(*) begin
-        if((re_i == `Enable) && (raddr_i[11:0] == waddr_i[11:0]) 
-            && (we_i == `Enable)) begin
-            rdata = wdata_i;
+        if(I_we && I_raddr == I_waddr) begin
+            rdata1 = I_wdata;
         end else begin
-            case(raddr_i[11:0])
-                `CSR_Addr_MSTATUS: rdata = mstatus;
-                `CSR_Addr_MIE:  rdata = mie;
-                `CSR_Addr_MTVEC:  rdata = mtvec;
-                `CSR_Addr_MSCRATCH: rdata = mscratch;
-                `CSR_Addr_MEPC: rdata = mepc;
-                `CSR_Addr_MCAUSE: rdata = mcause;
-                `CSR_Addr_CYCLE: rdata = cycle[31:0];
-                `CSR_Addr_CYCLEH: rdata = cycle[63:32];
-                default: rdata = `ZeroWord;
+            case(I_raddr)
+                `CSR_Addr_MSTATUS:  rdata1 = mstatus;
+                `CSR_Addr_MIE:      rdata1 = mie;
+                `CSR_Addr_MTVEC:    rdata1 = mtvec;
+                `CSR_Addr_MSCRATCH: rdata1 = mscratch;
+                `CSR_Addr_MEPC:     rdata1 = mepc;
+                `CSR_Addr_MCAUSE:   rdata1 = mcause;
+                `CSR_Addr_CYCLE:    rdata1 = cycle[31:0];
+                `CSR_Addr_CYCLEH:   rdata1 = cycle[63:32];
+                default:            rdata1 = `ZeroWord;
             endcase
         end
     end
 
 
-    //*********************// 输出 //*********************//
-    assign rdata_o = rdata;
+    //------------------------------------------------------------------------
+    // 输出
+    //------------------------------------------------------------------------
+    assign O_rdata = rdata1;
 
-    assign csr_mstatus_o = mstatus;
-    assign csr_mtvec_o = mtvec;
-    assign csr_mepc_o = mepc;
-    assign csr_timer_int_o = csr_timer_int;
-    assign global_int_en_o = (mstatus[3] == 1'b1)? `True : `False;  //mstatus[3]为mie域，全局中断使能位
+    assign O_csr_mtvec = mtvec;
+    assign O_csr_mepc = mepc;
+    assign O_csr_mstatus = mstatus;
+
+    assign O_global_int_en = mstatus[3]; //mstatus[3]为mie域，全局中断使能位
 
 endmodule
