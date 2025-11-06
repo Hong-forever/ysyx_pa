@@ -1,7 +1,7 @@
 #include <nvboard.h>
 #include <Vtop.h>
 
-#define MODE MEM
+#define MODE SUM
 #define MEM_DEPTH 131072 
 
 #if MODE==MEM
