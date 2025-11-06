@@ -16,7 +16,7 @@
 
 static TOP_NAME dut;
 
-// void nvboard_bind_all_pins(TOP_NAME* top);
+void nvboard_bind_all_pins(TOP_NAME* top);
 
 static int mem[MEM_DEPTH] = {0};
 int trap_flag = 0;
@@ -63,8 +63,8 @@ static void reset(int n) {
 
 
 int main() {
-  // nvboard_bind_all_pins(&dut);
-  // nvboard_init();
+  nvboard_bind_all_pins(&dut);
+  nvboard_init();
   
   FILE *file = fopen(MEM_DATA, "r");
   if(file == NULL) printf("Error read\n");
