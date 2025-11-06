@@ -50,6 +50,11 @@ module pipe_ctrl
     assign flush_o = stallreq_from_clint | int_assert_i;
     assign flush_addr_o = int_assert_i? int_addr_i : `ZeroWord;
 
+    initial begin
+        $monitor("stall: %d\n", stall);
+    end
+
+
 endmodule //pipe_ctrl
 
 
