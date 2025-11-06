@@ -81,9 +81,9 @@ int main() {
   
   int i=0;
   
-  // int n=50;
+  int n=50;
 
-  while(1) {
+  while(n--) {
     printf("i=%d\n", ++i);
 
     nvboard_update();
