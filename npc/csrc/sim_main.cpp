@@ -22,7 +22,7 @@ static int mem[MEM_DEPTH] = {0};
 int trap_flag = 0;
 
 extern "C" int pmem_read(int raddr) {
-    printf("0x%08x\n", mem[raddr>>2]);
+    printf("data: 0x%08x addr: 0x%08x\n", mem[raddr>>2], raddr);
     return mem[raddr>>2];
 }
 
