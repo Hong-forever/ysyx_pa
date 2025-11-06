@@ -79,9 +79,8 @@ int main() {
 
   reset(10);
   
-  int num=300;
 
-  while(num--) {
+  while(1) {
 
     nvboard_update();
     single_cycle();
