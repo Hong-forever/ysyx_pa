@@ -75,12 +75,17 @@ int main() {
   count++;
 
   fclose(file);
+  printf("count: %d\n", count);
 
   reset(10);
+  
+  int i=0;
   
   // int n=50;
 
   while(1) {
+    printf("i=%d\n", ++i);
+
     nvboard_update();
     single_cycle();
     if(trap_flag == 1) {printf("success!\n"); return 0;}
