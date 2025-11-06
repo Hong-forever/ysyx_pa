@@ -53,6 +53,10 @@ module top
         end
     end
 
+    initial begin
+        $monitor("inst_addr: 0x%08x\n", inst_addr);
+    end
+
     
 
 endmodule //riscv_ic_sopc
