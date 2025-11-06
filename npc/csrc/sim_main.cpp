@@ -29,19 +29,19 @@ extern "C" int pmem_read(int raddr) {
 static int tra_mask(int wmask) {
     switch(wmask) {
         case 0x00000001: return 0x000000ff;
-        case 0x00000010: return 0x0000ff00;
-        case 0x00000100: return 0x00ff0000;
-        case 0x00001000: return 0xff000000;
-        case 0x00000011: return 0x0000ffff;
-        case 0x00001100: return 0xffff0000;
-        case 0x00001111: return 0xffffffff;
+        case 0x00000002: return 0x0000ff00;
+        case 0x00000004: return 0x00ff0000;
+        case 0x00000008: return 0xff000000;
+        case 0x00000003: return 0x0000ffff;
+        case 0x0000000c: return 0xffff0000;
+        case 0x0000000f: return 0xffffffff;
         default: return 0;
     }
 }
 
 extern "C" void pmem_write(int waddr, int wdata, int wmask) {
     mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & tra_mask(wmask));
-    printf("0x%08x: 0x%08x data 0x%08x mask 0x%08x\n", waddr, wdata, wmask);
+    printf("0x%08x: 0x%08x data 0x%08x mask\n", waddr, wdata, wmask);
 }
 
 extern "C" void trap(int reg_data) {
