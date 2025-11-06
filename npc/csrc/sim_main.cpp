@@ -79,7 +79,7 @@ int main() {
 
   reset(10);
   
-  int n=50;
+  int n=300;
 
   while(n--) {
 
