@@ -1,7 +1,6 @@
 #include <nvboard.h>
 #include <Vtop.h>
 
-#define MODE SUM
 #define MEM_DEPTH 131072 
 
 #if MODE==MEM
@@ -11,14 +10,14 @@
 #elif MODE==VGA
     #define MEM_DATA "vga.data"
 #else
-    #define MEM_DATA "inst.data"
+    #define MEM_DATA "dummy-minirv-npc.bin"
 #endif
 
 static TOP_NAME dut;
 
 void nvboard_bind_all_pins(TOP_NAME* top);
 
-static int mem[MEM_DEPTH] = {0};
+static uint32_t mem[MEM_DEPTH] = {0};
 int trap_flag = 0;
 
 extern "C" int pmem_read(int raddr) {
@@ -66,13 +65,12 @@ int main() {
   nvboard_bind_all_pins(&dut);
   nvboard_init();
   
-  FILE *file = fopen(MEM_DATA, "r");
+  FILE *file = fopen(MEM_DATA, "rb");
   if(file == NULL) printf("Error read\n");
 
-  int count = 0;
+  size_t count = 0;
 
-  while(fscanf(file, "%x", &mem[count]) == 1 && count < MEM_DEPTH)
-  count++;
+  count = fread(mem, sizeof(mem[0]), MEM_DEPTH, file);
 
   fclose(file);
   printf("count: %d\n", count);
