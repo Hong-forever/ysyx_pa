@@ -22,6 +22,7 @@ static int mem[65536] = {0};
 int trap_flag = 0;
 
 extern "C" int pmem_read(int raddr) {
+    printf("0x%08x\n", mem[raddr>>2]);
     return mem[raddr>>2];
 }
 
@@ -40,6 +41,7 @@ static int tra_mask(int wmask) {
 
 extern "C" void pmem_write(int waddr, int wdata, int wmask) {
     mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & tra_mask(wmask));
+    printf("0x%08x: 0x%08x data 0x%08x mask\n", waddr, wdata, wmask);
 }
 
 extern "C" void trap(int reg_data) {
