@@ -76,9 +76,9 @@ module ifetch
 
     assign O_stallreq = 1'b0;
 
-    initial begin
-        $monitor("ifetch================>>> inst(0x%08x) pc(0x%08x) bru_taken(%d) bru_target(0x%08x)\n", O_inst, O_inst_addr, I_bru_taken, I_bru_target);
-    end
-
+/*     initial begin */
+    /*     $monitor("ifetch================>>> inst(0x%08x) pc(0x%08x) bru_taken(%d) bru_target(0x%08x)\n", O_inst, O_inst_addr, I_bru_taken, I_bru_target); */
+    /* end */
+/*  */
 
 endmodule
