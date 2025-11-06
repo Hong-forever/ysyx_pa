@@ -68,7 +68,7 @@ module ifu
     assign ibus_req_o = ibus_req; 
 
     initial begin
-        $monitor("ifu========= inst: 0x%08x, pc: 0x%08x\n", inst_o, pc);
+        $monitor("ifu========= inst: %x, pc: %x\n", inst_o, pc);
     end
 
 
