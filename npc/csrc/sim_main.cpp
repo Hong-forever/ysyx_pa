@@ -40,7 +40,7 @@ static int tra_mask(int wmask) {
 }
 
 extern "C" void pmem_write(int waddr, int wdata, int wmask) {
-    mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & tra_mask(wmask));
+    mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & ~tra_mask(wmask));
     printf("waddr: 0x%08x\nwdata: 0x%08x\nmask:0x%08x\n", waddr, wdata, tra_mask(wmask));
 }
 
