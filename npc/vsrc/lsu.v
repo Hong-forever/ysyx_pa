@@ -213,4 +213,7 @@ module lsu
     assign dbus_data_o = dbus_data;
     assign dbus_sel_o = dbus_sel;
 
+    initial begin
+        $monitor("lsu: inst_o(0x%08x) reg_we_o(%d) dbus_req_o(%d)\n", inst_o, reg_we_o, dbus_req_o);
+    end
 endmodule //lsu
