@@ -2,7 +2,7 @@
 #include <Vtop.h>
 
 #define MODE MEM
-#define ROM_DEPTH 65536
+#define ROM_DEPTH 262144
 
 #if MODE==MEM
     #define MEM_DATA "mem.data"
