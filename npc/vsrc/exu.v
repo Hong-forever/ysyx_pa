@@ -161,8 +161,8 @@ module exu
     assign csr_waddr_o = csr_waddr_i;
     assign csr_wdata_o = csr_result;
 
-    initial begin
-        $monitor("exu================ ls_valid(%d) inst(0x%08x) pc(0x%08x)\n", ls_valid_o, inst_o, inst_addr_o);
-    end
-
+    /* initial begin */
+    /*     $monitor("exu================ ls_valid(%d) inst(0x%08x) pc(0x%08x)\n", ls_valid_o, inst_o, inst_addr_o); */
+    /* end */
+/*  */
 endmodule //exu

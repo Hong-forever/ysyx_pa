@@ -563,8 +563,8 @@ module idu
     assign jump_addr_o = inst_is_jalr? jump_addr_jalr : bta_jta;
 
 
-    initial begin
-        $monitor("idu========= inst: 0x%08x, pc: 0x%08x\n", inst_o, inst_addr_o);
-    end
-
+    /* initial begin */
+    /*     $monitor("idu========= inst: 0x%08x, pc: 0x%08x\n", inst_o, inst_addr_o); */
+    /* end */
+/*  */
 endmodule //decoder
