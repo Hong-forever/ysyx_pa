@@ -79,12 +79,9 @@ int main() {
 
   reset(10);
   
-  int i=0;
-  
   int n=50;
 
   while(n--) {
-    printf("i=%d\n", ++i);
 
     nvboard_update();
     single_cycle();

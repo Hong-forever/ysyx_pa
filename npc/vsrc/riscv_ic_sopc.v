@@ -54,9 +54,8 @@ module top
     end
 
     initial begin
-        $monitor("inst_addr: 0x%08x\n", inst_addr);
+        $monitor("inst_addr: 0x%08x  inst: 0x%08x\n", inst_addr, inst);
     end
-
     
 
 endmodule //riscv_ic_sopc
