@@ -2,7 +2,7 @@
 #include <Vtop.h>
 
 #define MODE MEM
-#define ROM_DEPTH 131072 
+#define MEM_DEPTH 131072 
 
 #if MODE==MEM
     #define MEM_DATA "mem.data"
@@ -18,7 +18,7 @@ static TOP_NAME dut;
 
 void nvboard_bind_all_pins(TOP_NAME* top);
 
-static int mem[65536] = {0};
+static int mem[MEM_DEPTH] = {0};
 int trap_flag = 0;
 
 extern "C" int pmem_read(int raddr) {
@@ -71,7 +71,7 @@ int main() {
 
   int count = 0;
 
-  while(fscanf(file, "%x", &mem[count]) == 1 && count < ROM_DEPTH)
+  while(fscanf(file, "%x", &mem[count]) == 1 && count < MEM_DEPTH)
   count++;
 
   fclose(file);
