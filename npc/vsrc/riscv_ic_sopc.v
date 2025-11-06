@@ -55,14 +55,9 @@ module top
         .I_jtag_haltreq         (1'b0                       )
     );
 
-    wire [`MemAddrBus] ibus_addr_to_guest = ibus_req ? ibus_addr - 32'h8000_0000 : 0;
+    wire [`MemAddrBus] ibus_addr_to_guest = ibus_req ? ibus_addr - 32'h0000_0000 : 0;
 
-    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - 32'h8000_0000 : 0;
-
-    initial begin
-        $monitor("addr: 0x%08x\n", ibus_addr_to_guest);
-    end
-    
+    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - 32'h0000_0000 : 0;
 
 
     import "DPI-C" function bit[31:0] pmem_read(input bit[31:0] raddr);
