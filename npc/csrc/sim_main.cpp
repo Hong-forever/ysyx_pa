@@ -13,7 +13,7 @@ static uint32_t mem[MEM_DEPTH] = {0};
 
 int trap_flag = 0;
 
-extern "C" int pmem_read(int raddr) {
+extern "C" uint32_t pmem_read(uint32_t raddr) {
     printf("data: 0x%08x addr: 0x%08x\n", mem[raddr>>2], raddr);
     return mem[raddr>>2];
 }
@@ -40,7 +40,7 @@ static size_t load_img() {
     return size;
 }
 
-static int tra_mask(int wmask) {
+static uint32_t tra_mask(uint32_t wmask) {
     switch(wmask) {
         case 0x00000001: return 0x000000ff;
         case 0x00000002: return 0x0000ff00;
@@ -53,7 +53,7 @@ static int tra_mask(int wmask) {
     }
 }
 
-extern "C" void pmem_write(int waddr, int wdata, int wmask) {
+extern "C" void pmem_write(uint32_t waddr, uint32_t wdata, uint32_t wmask) {
     mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & ~tra_mask(wmask));
     printf("waddr: 0x%08x\nwdata: 0x%08x\nmask:0x%08x\n", waddr, wdata, tra_mask(wmask));
 }
