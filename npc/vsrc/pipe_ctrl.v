@@ -51,7 +51,7 @@ module pipe_ctrl
     assign flush_addr_o = int_assert_i? int_addr_i : `ZeroWord;
 
     initial begin
-        $monitor("stall: %d\n", stall);
+        $monitor("stall: %x\n", stall);
     end
 
 
