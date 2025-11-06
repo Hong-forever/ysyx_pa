@@ -53,6 +53,9 @@ module top
         end
     end
 
+    initial begin
+        $monitor("ram_we: %d\n", ram_we);
+    end
     
 
 endmodule //riscv_ic_sopc
