@@ -4,7 +4,7 @@ INC_PATH ?=
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
+				-O2 --x-assign fast --x-initial fast --noassert
 
 VERILATOR_CFLAGS += -Wno-WIDTHEXPAND
 
