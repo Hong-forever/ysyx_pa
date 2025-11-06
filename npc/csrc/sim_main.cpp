@@ -34,6 +34,7 @@ static int tra_mask(int wmask) {
         case 0x00000011: return 0x0000ffff;
         case 0x00001100: return 0xffff0000;
         case 0x00001111: return 0xffffffff;
+        default: return 0;
     }
 }
 
