@@ -82,6 +82,9 @@ int main() {
   
   size_t size = load_img();
 
+  printf("inst0: 0x%08x\n", mem[0]);
+  printf("inst1: 0x%08x\n", mem[1]);
+
   reset(10);
 
   while(1) {
