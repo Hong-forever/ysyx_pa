@@ -55,11 +55,15 @@ module top
         .I_jtag_haltreq         (1'b0                       )
     );
 
+    wire [`MemAddrBus] ibus_addr_to_guost = ibus_addr - 32'h8000_0000;
+    wire [`MemAddrBus] dbus_addr_to_guost = dbus_addr - 32'h8000_0000;
+
+
     import "DPI-C" function int pmem_read(input int raddr);
     import "DPI-C" function void pmem_write(input int waddr, input int wdata, input int wmask);
 
-    assign ibus_rdata = ibus_req ? pmem_read(ibus_addr) : 32'b0;
-    assign dbus_rdata = dbus_req ? pmem_read(dbus_addr) : 32'b0;
+    assign ibus_rdata = ibus_req ? pmem_read(ibus_addr_to_guost) : 32'b0;
+    assign dbus_rdata = dbus_req ? pmem_read(dbus_addr_to_guost) : 32'b0;
 
     always @(*) begin
         if (dbus_req && dbus_we) begin
