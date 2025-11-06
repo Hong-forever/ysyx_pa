@@ -57,14 +57,12 @@ module top
 
     wire [`MemAddrBus] ibus_addr_to_guest = ibus_req ? ibus_addr - 32'h8000_0000 : 0;
 
-always @(posedge clk) begin
-    if (ibus_req) begin
-        $display("[IF] ibus_addr=0x%h, to_guest=0x%h\n", ibus_addr, ibus_addr_to_guest);
+    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - 32'h8000_0000 : 0;
+
+    initial begin
+        $monitor("addr: 0x%08x\n", ibus_addr_to_guest);
     end
-    if (dbus_req) begin
-        $display("[MEM] dbus_addr=0x%h, to_guest=0x%h\n", dbus_addr, dbus_addr_to_guest);
-    end
-end    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - 32'h8000_0000 : 0;
+    
 
 
     import "DPI-C" function bit[31:0] pmem_read(input bit[31:0] raddr);
