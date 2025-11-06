@@ -55,6 +55,8 @@ module top
 
     initial begin
         $monitor("ram_we: %d\n", ram_we);
+        $monitor("inst: 0x%08x\n", inst);
+
     end
     
 
