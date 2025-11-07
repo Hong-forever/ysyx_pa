@@ -55,8 +55,8 @@ static uint32_t tra_mask(uint32_t wmask) {
 }
 
 extern "C" void pmem_write(uint32_t waddr, uint32_t wdata, uint32_t wmask) {
-    mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & ~tra_mask(wmask));
     printf("waddr: 0x%08x\nwdata: 0x%08x\nmask:0x%08x\n", waddr, wdata, tra_mask(wmask));
+    mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & ~tra_mask(wmask));
 }
 
 extern "C" void trap(int reg_data) {
