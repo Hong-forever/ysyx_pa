@@ -60,7 +60,7 @@ module top
     wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr : 0;
 
 
-    import "DPI-C" function bit[31:0] pmem_read(input bit[31:0] raddr);
+    import "DPI-C" function bit[31:0] pmem_read(input int raddr);
     import "DPI-C" function void pmem_write(input bit[31:0] waddr, input bit[31:0] wdata, input bit[31:0] wmask);
 
     assign ibus_rdata = pmem_read(32'h0000_0004);
