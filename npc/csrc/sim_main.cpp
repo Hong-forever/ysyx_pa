@@ -2,6 +2,10 @@
 #include <Vtop.h>
 #include <getopt.h>
 
+#define COLOR_RED   "\033[1;31m"
+#define COLOR_GREEN "\033[1;32m"
+#define COLOR_END   "\033[0m"
+
 #define MEM_DEPTH 131072 
 
 static char *img_file; 
@@ -27,13 +31,13 @@ static uint32_t tra_mask(uint32_t wmask) {
 }
 
 extern "C" uint32_t pmem_read(uint32_t raddr) {
-    printf("data: 0x%x addr: 0x%x\n", mem[raddr>>2], raddr);
+    // printf("data: 0x%x addr: 0x%x\n", mem[raddr>>2], raddr);
     if(raddr > MEM_DEPTH*2) {printf("Error: overflow, %x\n", raddr); assert(-1);}
     return mem[raddr>>2];
 }
 
 extern "C" void pmem_write(uint32_t waddr, uint32_t wdata, uint32_t wmask) {
-    printf("waddr: 0x%08x\nwdata: 0x%08x\nmask:0x%08x\n", waddr, wdata, tra_mask(wmask));
+    // printf("waddr: 0x%08x\nwdata: 0x%08x\nmask:0x%08x\n", waddr, wdata, tra_mask(wmask));
     mem[waddr >> 2] = (wdata & tra_mask(wmask)) | (mem[waddr >> 2] & ~tra_mask(wmask));
 }
 
@@ -69,8 +73,6 @@ static int parse_args(int argc, char *argv[]) {
         {0              , 0                 , NULL,  0 },
     };
 
-    printf("argv: %s\n", argv[1]);
-    
     int o;
     while( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         switch(o) {
@@ -119,14 +121,22 @@ int main(int argc, char *argv[]) {
   
   parse_args(argc, argv);
   size_t size = load_img();
-  printf("mem[0]: 0x%08x\n", mem[0]);
 
   reset(10);
 
   while(1) {
     nvboard_update();
     single_cycle();
-    if(trap_flag == 1) {printf("success!\n"); return 0;}
-    else if(trap_flag == 2) {printf("Error!\n"); return 0;}
+    if(trap_flag == 1)
+    {
+        printf(COLOR_GREEN "HIT GOOD TRAP!\n" COLOR_END);
+        return 0;
+    }
+    else if(trap_flag == 2) 
+    {
+        printf(COLOR_RED "HIT BAD TRAP!\n" COLOR_END); 
+        return 0;
+    }
   }
+
 }
