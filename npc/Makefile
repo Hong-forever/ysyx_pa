@@ -1,11 +1,12 @@
 TOPNAME = top
 NXDC_FILES = constr/top.nxdc
-INC_PATH = vsrc
+INC_PATH ?= 
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 
+VERILATOR_CFLAGS += -I./vsrc
 VERILATOR_CFLAGS += -Wno-WIDTHEXPAND
 
 BUILD_DIR = ./build
