@@ -117,6 +117,7 @@ int main(int argc, char *argv[]) {
   
   parse_args(argc, argv);
   size_t size = load_img();
+  printf("mem[0]: 0x%08x\n", mem[0]);
 
   reset(10);
 
