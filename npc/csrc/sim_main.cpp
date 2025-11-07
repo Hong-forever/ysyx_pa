@@ -15,7 +15,7 @@ int trap_flag = 0;
 
 extern "C" uint32_t pmem_read(uint32_t raddr) {
     // printf("data: 0x%x addr: 0x%x\n", mem[raddr>>2], raddr);
-    if(raddr > MEM_DEPTH*2) {printf("Error: overflow\n"); assert(-1);}
+    if(raddr > MEM_DEPTH*2) {printf("Error: overflow, %x\n", raddr); assert(-1);}
     return mem[raddr>>2];
 }
 
