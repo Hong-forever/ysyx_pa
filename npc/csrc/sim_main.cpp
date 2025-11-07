@@ -6,7 +6,7 @@
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_END   "\033[0m"
 
-#define MEM_DEPTH 131072 
+#define MEM_DEPTH 0x07ffffff 
 
 static char *img_file; 
 
@@ -53,7 +53,7 @@ static size_t load_img() {
     fseek(fp, 0, SEEK_END);
     long size = ftell(fp);
 
-    printf("The image is %s, size = %ld\n", img_file, size);
+    printf("The image is %s, size = 0x%08lx\n", img_file, size);
 
     fseek(fp, 0, SEEK_SET);
     int ret = fread(mem, size, 1, fp);
