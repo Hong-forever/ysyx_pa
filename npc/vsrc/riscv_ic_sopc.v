@@ -63,7 +63,7 @@ module top
     import "DPI-C" function int pmem_read(input int raddr);
     import "DPI-C" function void pmem_write(input int waddr, input int wdata, input int wmask);
 
-    assign ibus_rdata = pmem_read(32'h0000_0004);
+    assign ibus_rdata = pmem_read(ibus_addr_to_guest);
     assign dbus_rdata = pmem_read(dbus_addr_to_guest);
 
     always @(*) begin
