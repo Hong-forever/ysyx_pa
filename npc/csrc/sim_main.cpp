@@ -129,12 +129,12 @@ int main(int argc, char *argv[]) {
     single_cycle();
     if(trap_flag == 1)
     {
-        printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [======]\n" COLOR_END);
+        printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
         return 0;
     }
     else if(trap_flag == 2) 
     {
-        printf(COLOR_RED "[====================] HIT BAD TRAP! [======]\n" COLOR_END); 
+        printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END); 
         return 0;
     }
   }
