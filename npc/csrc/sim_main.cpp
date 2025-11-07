@@ -69,6 +69,8 @@ static int parse_args(int argc, char *argv[]) {
         {0              , 0                 , NULL,  0 },
     };
 
+    printf("argv: %s\n", argv[1]);
+    
     int o;
     while( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         printf("opt: %c\n", o);
