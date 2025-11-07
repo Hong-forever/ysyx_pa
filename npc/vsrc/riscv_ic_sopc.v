@@ -57,7 +57,7 @@ module top
 
     wire [`MemAddrBus] ibus_addr_to_guest = ibus_req ? ibus_addr - 32'h8000_0000 : 0;
 
-    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - 32'h8000_0000 : 0;
+    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req&~dbus_we ? dbus_addr - 32'h8000_0000 : 0;
 
 
     import "DPI-C" function int pmem_read(input int raddr);
