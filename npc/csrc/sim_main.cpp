@@ -6,7 +6,7 @@
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_END   "\033[0m"
 
-#define MEM_DEPTH 131072 
+#define MEM_DEPTH 0x00fffffff 
 
 static char *img_file; 
 
