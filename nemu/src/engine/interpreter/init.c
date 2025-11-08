@@ -27,7 +27,7 @@ void engine_start() {
 #else
 
 #if EXPR_TEST
-  FILE *fp = fopen("/home/hhh/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input.txt" , "r");
+  FILE *fp = fopen("/home/hhh/Desktop/ysyx/ysyx-workbench/nemu/tools/gen-expr/input" , "r");
   if(fp == NULL) {
       printf("Error to open file\n");
   }
