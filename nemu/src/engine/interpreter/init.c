@@ -16,7 +16,7 @@
 #include <cpu/cpu.h>
 #include "../../monitor/sdb/sdb.h"
 
-#define EXPR_TEST 1
+#define EXPR_TEST 0
 #define TESTNUM 500
 
 void sdb_mainloop();
