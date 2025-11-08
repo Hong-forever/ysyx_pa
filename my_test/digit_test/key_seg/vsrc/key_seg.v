@@ -64,7 +64,6 @@ module top
             8'h46: ascii_map = 8'h39; // 9
 
             // a-z
-                // 小写字母 a-z
             8'h1C: ascii_map = 8'h61; // a
             8'h32: ascii_map = 8'h62; // b
             8'h21: ascii_map = 8'h63; // c

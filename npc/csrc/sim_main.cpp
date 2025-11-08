@@ -6,7 +6,7 @@
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_END   "\033[0m"
 
-#define MEM_DEPTH 0x07ffffff 
+#define MEM_DEPTH 0x08000000 
 
 static char *img_file; 
 
@@ -32,7 +32,7 @@ static uint32_t tra_mask(uint32_t wmask) {
 
 extern "C" uint32_t pmem_read(uint32_t raddr) {
     // printf("data: 0x%x addr: 0x%x\n", mem[raddr>>2], raddr);
-    if(raddr > MEM_DEPTH*2) {printf("Error: overflow, %x\n", raddr); assert(-1);}
+    if(raddr >= (MEM_DEPTH<<2)) {printf("Error: overflow, %x\n", raddr); assert(0);}
     return mem[raddr>>2];
 }
 
@@ -129,12 +129,16 @@ int main(int argc, char *argv[]) {
     single_cycle();
     if(trap_flag == 1)
     {
+        printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
         printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
+        printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
         return 0;
     }
     else if(trap_flag == 2) 
     {
+        printf(COLOR_RED "[=========================================================]\n" COLOR_END); 
         printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END); 
+        printf(COLOR_RED "[=========================================================]\n" COLOR_END); 
         return 0;
     }
   }

@@ -122,7 +122,7 @@ void check_watchpoint() {
 
 void info_watchpoint() {
     if(head == NULL) {
-        printf("No watchpoit!\n");
+        printf("No watchpoint!\n");
         return ;
     }
 
