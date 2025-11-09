@@ -12,17 +12,16 @@ char *print_str_to_buf(char *out, char *str);
 int sprintf(char *out, const char *fmt, ...);
 
 int printf(const char *fmt, ...) {
- /*    va_list ap; */
-    /* char out[STRLEN]; */
-    /*  */
-    /* va_start(ap, fmt); */
-    /* int ret = sprintf(out, fmt, ap); */
-    /* va_end(ap); */
-    /*  */
-    /* putstr(out); */
-    /*  */
-    /* return ret; */
-  panic("Not implemented");
+    va_list ap;
+    char out[STRLEN];
+
+    va_start(ap, fmt);
+    int ret = sprintf(out, fmt, ap);
+    va_end(ap);
+
+    putstr(out);
+
+    return ret;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
