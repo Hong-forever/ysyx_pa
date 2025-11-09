@@ -5,40 +5,23 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-char *print_int_to_buf(char *out, int num) {
-    char buffer[32];
-    int i = 0;
-    int is_neg = 0;
-    
-    if(num < 0) {
-        is_neg = 1;
-        num = -num;
-    }
+#define STRLEN 1024
 
-    if(num == 0) {
-        buffer[i++] = '0';
-    } else {
-        while(num > 0) {
-            buffer[i++] = '0' + (num % 10);
-            num /= 10;
-        }
-    }
-
-    if(is_neg) *out++ = '-';
-
-    for(int j=i-1; j>=0; j--) *out++ = buffer[j];
-
-    return out;
-}
-
-char *print_str_to_buf(char *out, char *str) {
-    while(*str) *out++ = *str++;
-
-    return out;
-}
+char *print_int_to_buf(char *out, int num);
+char *print_str_to_buf(char *out, char *str); 
+int sprintf(char *out, const char *fmt, ...);
 
 int printf(const char *fmt, ...) {
-    panic("Not implemented");
+    va_list ap;
+    char out[STRLEN];
+
+    va_start(ap, fmt);
+    int ret = sprintf(out, fmt, ap);
+    va_end(ap);
+
+    putstr(out);
+
+    return ret;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
@@ -94,6 +77,38 @@ int snprintf(char *out, size_t n, const char *fmt, ...) {
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
   panic("Not implemented");
+}
+
+char *print_int_to_buf(char *out, int num) {
+    char buffer[32];
+    int i = 0;
+    int is_neg = 0;
+    
+    if(num < 0) {
+        is_neg = 1;
+        num = -num;
+    }
+
+    if(num == 0) {
+        buffer[i++] = '0';
+    } else {
+        while(num > 0) {
+            buffer[i++] = '0' + (num % 10);
+            num /= 10;
+        }
+    }
+
+    if(is_neg) *out++ = '-';
+
+    for(int j=i-1; j>=0; j--) *out++ = buffer[j];
+
+    return out;
+}
+
+char *print_str_to_buf(char *out, char *str) {
+    while(*str) *out++ = *str++;
+
+    return out;
 }
 
 #endif
