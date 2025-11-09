@@ -13,7 +13,7 @@ int sprintf(char *out, const char *fmt, ...);
 
 int printf(const char *fmt, ...) {
     va_list ap;
-    char *out = NULL;
+    char out[STRLEN];
 
     va_start(ap, fmt);
     int ret = sprintf(out, fmt, ap);
