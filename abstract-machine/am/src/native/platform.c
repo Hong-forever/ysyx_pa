@@ -172,7 +172,6 @@ static void init_platform() {
   setbuf(stdout, NULL);
 
   const char *args = getenv("mainargs");
-  printf("mainargs =================== %s\n", args);
   halt(main(args ? args : "")); // call main here!
 }
 
