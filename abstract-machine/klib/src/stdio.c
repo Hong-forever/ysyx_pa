@@ -5,7 +5,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define STRLEN 2048
+#define STRLEN 1024
 
 char *print_int_to_buf(char *out, int num);
 char *print_uint_to_buf(char *out, unsigned int num);
