@@ -11,7 +11,7 @@ void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
     /* printf("hi: %d lo: %d\n", time_hi, time_lo); */
 
     /* uptime->us = ((uint64_t)time_hi << 32) | (uint64_t)time_lo; */
-    uptime->us = 2022220200202;
+    uptime->us = 200202;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
