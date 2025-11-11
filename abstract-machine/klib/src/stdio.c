@@ -5,7 +5,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define STRLEN 1024
+#define STRLEN 2048
 
 char *print_int_to_buf(char *out, int num);
 char *print_uint_to_buf(char *out, unsigned int num);
@@ -14,7 +14,7 @@ int sprintf(char *out, const char *fmt, ...);
 
 int printf(const char *fmt, ...) {
     va_list ap;
-    char out[STRLEN];
+    char out[STRLEN] = {0};
 
     va_start(ap, fmt);
     int ret = sprintf(out, fmt, ap);
