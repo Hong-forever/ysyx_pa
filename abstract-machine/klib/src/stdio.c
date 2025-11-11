@@ -8,6 +8,7 @@
 #define STRLEN 1024
 
 char *print_int_to_buf(char *out, int num);
+char *print_uint_to_buf(char *out, unsigned int num);
 char *print_str_to_buf(char *out, char *str); 
 int sprintf(char *out, const char *fmt, ...);
 
@@ -38,6 +39,11 @@ int sprintf(char *out, const char *fmt, ...) {
         if(*fmt == '%') {
             fmt++;
             switch (*fmt) {
+                case 'u': {
+                    unsigned int num = va_arg(ap, unsigned int);
+                    out = print_uint_to_buf(out, num);
+                    break;
+                }
                 case 'd': {
                     int num = va_arg(ap, int);
                     out = print_int_to_buf(out, num);
@@ -77,6 +83,24 @@ int snprintf(char *out, size_t n, const char *fmt, ...) {
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
   panic("Not implemented");
+}
+
+char *print_uint_to_buf(char *out, unsigned int num) {
+    char buffer[32];
+    int i = 0;
+
+    if(num == 0) {
+        buffer[i++] = '0';
+    } else {
+        while(num > 0) {
+            buffer[i++] = '0' + (num % 10);
+            num /= 10;
+        }
+    }
+
+    for(int j=i-1; j>=0; j--) *out++ = buffer[j];
+
+    return out;
 }
 
 char *print_int_to_buf(char *out, int num) {
