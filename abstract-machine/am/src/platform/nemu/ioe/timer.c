@@ -1,17 +1,14 @@
 #include <am.h>
 #include <nemu.h>
 
-#define CONFIG_RTC_MMIO 0xa0000048
-
 void __am_timer_init() {
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-    /* uint32_t time_lo = inw(RTC_ADDR); */
-    /* uint32_t time_hi = inw(RTC_ADDR+ 4); */
+    uint32_t time_lo = inw(RTC_ADDR);
+    uint32_t time_hi = inw(RTC_ADDR+ 4);
 
-    /* uptime->us = ((uint64_t)time_hi << 32) | time_lo; */
-    uptime->us = 0;
+    uptime->us = ((uint64_t)time_hi << 32) | time_lo;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
