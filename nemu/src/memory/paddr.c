@@ -59,7 +59,7 @@ word_t paddr_read(paddr_t addr, int len) {
 
 void paddr_write(paddr_t addr, int len, word_t data) {
   if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
-  IFDEF(CONFIG_DEVICE, printf("write_data: %d\n",data); return);
+  IFDEF(CONFIG_DEVICE, if(addr==0xa0000048)printf("write_data: %d\n",data); return);
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   out_of_bound(addr);
 }
