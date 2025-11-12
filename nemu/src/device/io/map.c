@@ -56,12 +56,10 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
     assert(len >= 1 && len <= 8);
     check_bound(map, addr);
     paddr_t offset = addr - map->low;
-    printf("rtc addr: %u\n", addr);
-    /* printf("BEFORE callback: map->space[offset]=%d\n", *(word_t*)(map->space + offset)); */
+    printf("BEFORE callback: map->space[offset]=%d\n", *(word_t*)(map->space + offset));
     invoke_callback(map->callback, offset, len, false); // prepare data to read
-    /* printf("AFTER callback:  map->space[offset]=%d\n",  */
-                        /* *(word_t*)(map->space + offset)); */
-    printf("space addr: %p\n", (map->space));
+    printf("AFTER callback:  map->space[offset]=%d\n",
+                        *(word_t*)(map->space + offset));
     word_t ret = host_read(map->space + offset, len);
     /* printf("ret: %d\n", ret); */
     return ret;
@@ -71,6 +69,7 @@ void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
     assert(len >= 1 && len <= 8);
     check_bound(map, addr);
     paddr_t offset = addr - map->low;
+    printf("WRITE BEFORE callback: map->space[offset]=%d\n", *(word_t*)(map->space + offset));
     host_write(map->space + offset, len, data);
     invoke_callback(map->callback, offset, len, true);
 }
