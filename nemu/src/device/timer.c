@@ -28,6 +28,7 @@ static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
     rtc_port_base[1] = us >> 32;
     printf("hi: %d lo: %d\n", rtc_port_base[1], rtc_port_base[0]);
   }
+  printf("base: %d, base+4: %d\n", rtc_port_base[0], rtc_port_base[1]);
 }
 
 #ifndef CONFIG_TARGET_AM
