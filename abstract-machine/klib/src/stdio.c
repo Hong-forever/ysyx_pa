@@ -104,9 +104,16 @@ char *print_uint_to_buf(char *out, unsigned int num) {
 }
 
 char *print_int_to_buf(char *out, int num) {
-    char buffer[32];
+    char buffer[34];
     int i = 0;
     int is_neg = 0;
+
+    if(num == (-2^32)) {
+        const char *min_str = "-2147483648";
+
+        while(*min_str) *out++ = *min_str++;
+        return out;
+    }
     
     if(num < 0) {
         is_neg = 1;
