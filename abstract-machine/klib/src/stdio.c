@@ -108,7 +108,7 @@ char *print_int_to_buf(char *out, int num) {
     int i = 0;
     int is_neg = 0;
 
-    if(num == (-2^32)) {
+    if(num == (-2147483648)) {
         const char *min_str = "-2147483648";
 
         while(*min_str) *out++ = *min_str++;
