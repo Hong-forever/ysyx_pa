@@ -4,7 +4,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
-extern uintptr_t _heap_start;
+extern unsigned char *_heap_start;
 
 int rand(void) {
     // RAND_MAX assumed to be 32767
