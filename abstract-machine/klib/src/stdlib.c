@@ -38,7 +38,7 @@ void *malloc(size_t size) {
 
     static unsigned char *addr = NULL; 
     if(addr == NULL) addr = (unsigned char *)_heap_start;
-    printf("_heap: %x\n", (void *)_heap_start);
+    printf("_heap: %x\n", _heap_start);
     printf("addr: %x\n", addr);
 
     if(size == 0) return NULL;
