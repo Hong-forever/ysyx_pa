@@ -36,9 +36,9 @@ void *malloc(size_t size) {
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
 
     static unsigned char *addr = NULL; 
-    extern size_t _heap_start;
-    if(addr == NULL) addr = (unsigned char *)_heap_start;
-    printf("_heap: %x\n", _heap_start);
+    extern char _heap_start;
+    if(addr == NULL) addr = (unsigned char *)&_heap_start;
+    printf("_heap: %x\n", &_heap_start);
     printf("addr: %x\n", addr);
 
     if(size == 0) return NULL;
