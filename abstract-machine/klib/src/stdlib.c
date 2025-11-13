@@ -4,8 +4,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
-extern unsigned char *_heap_start;
-extern unsigned char *_pmem_start;
+extern uintptr_t _heap_start;
 
 int rand(void) {
     // RAND_MAX assumed to be 32767
@@ -40,7 +39,6 @@ void *malloc(size_t size) {
     static unsigned char *addr = NULL; 
     if(addr == NULL) addr = (unsigned char *)_heap_start;
     printf("_heap: %x\n", (void *)_heap_start);
-    printf("_pmem: %x\n", (void *)_pmem_start);
     printf("addr: %x\n", addr);
 
     if(size == 0) return NULL;
