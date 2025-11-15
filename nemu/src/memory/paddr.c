@@ -97,7 +97,7 @@ word_t paddr_read(paddr_t addr, int len) {
         IFDEF(CONFIG_MTRACE, mtrace_log(addr, read_data, 0));
         return read_data;
     }
-  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); IFDEF(CONFIG_MTRACE, mtrace_log(addr, read_data, 0)); return mmio_data);
+  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); IFDEF(CONFIG_MTRACE, mtrace_log(addr, mmio_data, 0)); return mmio_data);
   out_of_bound(addr);
   return 0;
 }
