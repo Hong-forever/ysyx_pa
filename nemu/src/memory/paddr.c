@@ -71,9 +71,9 @@ static void mtrace_log(paddr_t addr, word_t data, int we) {
         for(int i=0; i<MTRACE_LINE-1; i++) {
             trace_buf[i] = trace_buf[i+1];
         }
-        trace_buf[nr_mtrace].addr = addr;
-        trace_buf[nr_mtrace].data = data;
-        trace_buf[nr_mtrace].op = we;
+        trace_buf[MTRACE_LINE-1].addr = addr;
+        trace_buf[MTRACE_LINE-1].data = data;
+        trace_buf[MTRACE_LINE-1].op = we;
     }
 }
 
