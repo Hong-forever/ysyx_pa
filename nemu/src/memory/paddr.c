@@ -52,52 +52,23 @@ void init_mem() {
 }
 
 #ifdef CONFIG_MTRACE
-#define MTRACE_LINE 80 
-typedef struct{
-    paddr_t addr;
-    word_t data;
-    int op;
-} MTRACE_UNIT;
 
-static MTRACE_UNIT trace_buf[MTRACE_LINE];
-static int nr_mtrace = 0;
+#define MTRACE_BASE 0x80000140
+#define MTRACE_SIZE 3
 
-static void mtrace_log(paddr_t addr, word_t data, int we) {
-    if(nr_mtrace < MTRACE_LINE) {
-        trace_buf[nr_mtrace].addr = addr;
-        trace_buf[nr_mtrace].data = data;
-        trace_buf[nr_mtrace].op = we;
-        nr_mtrace++;
-    } else {
-        for(int i=0; i<MTRACE_LINE-1; i++) {
-            trace_buf[i] = trace_buf[i+1];
-        }
-        trace_buf[MTRACE_LINE-1].addr = addr;
-        trace_buf[MTRACE_LINE-1].data = data;
-        trace_buf[MTRACE_LINE-1].op = we;
-    }
+static void mtrace(paddr_t addr, word_t data, int op) {
+    if(addr > MTRACE_BASE && addr < MTRACE_BASE+4*MTRACE_SIZE) printf("MTRACE===>>>  addr(0x%08x): data(0x%08x) op(%s)\n", addr, data, op==0? "read" : op==1? "sb  " : op==2? "sh  " : "sw  ");
 }
 
-void mtrace_print(paddr_t addr, int size) {
-    if(nr_mtrace < MTRACE_LINE) {
-        for(int i=0; i<nr_mtrace; i++) {
-            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr(0x%08x): data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb  " : trace_buf[i].op==2? "sh  " : "sw  ");
-        }
-    } else {
-        for(int i=0; i<MTRACE_LINE; i++) {
-            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr(0x%08x): data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb  " : trace_buf[i].op==2? "sh  " : "sw  ");
-        }
-    }
-}
 #endif
 
 word_t paddr_read(paddr_t addr, int len) {
     if (likely(in_pmem(addr))) {
         word_t read_data = pmem_read(addr, len);
-        IFDEF(CONFIG_MTRACE, mtrace_log(addr, read_data, 0));
+        IFDEF(CONFIG_MTRACE, mtrace(addr, read_data, 0));
         return read_data;
     }
-  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); IFDEF(CONFIG_MTRACE, mtrace_log(addr, mmio_data, 0)); return mmio_data);
+  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); IFDEF(CONFIG_MTRACE, mtrace(addr, mmio_data, 0)); return mmio_data);
   out_of_bound(addr);
   return 0;
 }
@@ -105,9 +76,9 @@ word_t paddr_read(paddr_t addr, int len) {
 void paddr_write(paddr_t addr, int len, word_t data) {
   if (likely(in_pmem(addr))) { 
       pmem_write(addr, len, data); 
-      IFDEF(CONFIG_MTRACE, mtrace_log(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len));
+      IFDEF(CONFIG_MTRACE, mtrace(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len));
       return; 
   }
-  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); IFDEF(CONFIG_MTRACE, mtrace_log(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len); return));
+  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); IFDEF(CONFIG_MTRACE, mtrace(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len); return));
   out_of_bound(addr);
 }

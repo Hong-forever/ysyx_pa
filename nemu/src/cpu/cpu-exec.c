@@ -35,10 +35,6 @@ static bool g_print_step = false;
 
 void device_update();
 
-#ifdef CONFIG_MTRACE
-    extern void mtrace_print(paddr_t addr, int size);
-    /* IFDEF(CONFIG_MTRACE, mtrace_print(aaa, 111)); */
-#endif
 
 #if ITRACE_COND
 static char iringbuf[IRINGBUF_LINE][IRINGBUF_SIZE];
