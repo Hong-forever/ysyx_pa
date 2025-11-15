@@ -80,11 +80,11 @@ static void mtrace_log(paddr_t addr, word_t data, int we) {
 void mtrace_print(paddr_t addr, int size) {
     if(nr_mtrace < MTRACE_LINE) {
         for(int i=0; i<nr_mtrace; i++) {
-            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr->0x%08x : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
+            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr(0x%08x) : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
         }
     } else {
         for(int i=0; i<MTRACE_LINE; i++) {
-            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr->0x%08x : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
+            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr(0x%08x) : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
         }
     }
 }
