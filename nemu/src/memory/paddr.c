@@ -54,7 +54,7 @@ void init_mem() {
 #ifdef CONFIG_MTRACE
 
 #define MTRACE_BASE 0x80000090
-#define MTRACE_SIZE 400
+#define MTRACE_SIZE 1
 
 static void mtrace(paddr_t addr, word_t data, int op) {
     if(addr > MTRACE_BASE && addr < MTRACE_BASE+4*MTRACE_SIZE) printf("MTRACE===>>>  addr(0x%08x): data(0x%08x) op(%s)\n", addr, data, op==0? "read" : op==1? "sb  " : op==2? "sh  " : "sw  ");
