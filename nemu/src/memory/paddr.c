@@ -51,7 +51,7 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
-#define MTRACE_LINE 50 
+#define MTRACE_LINE 1000 
 typedef struct{
     paddr_t addr;
     word_t data;
