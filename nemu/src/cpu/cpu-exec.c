@@ -34,6 +34,7 @@ static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
 void device_update();
+extern void mtrace_print(paddr_t addr, int size);
 
 #if ITRACE_COND
 static char iringbuf[IRINGBUF_LINE][IRINGBUF_SIZE];
@@ -154,6 +155,7 @@ void cpu_exec(uint64_t n) {
         case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
         case NEMU_END: case NEMU_ABORT:
+                           mtrace_print(0x80000000, 4);
                            Log("nemu: %s at pc = " FMT_WORD,
                                    (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
                                     (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :

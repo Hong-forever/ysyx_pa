@@ -32,6 +32,7 @@ static word_t pmem_read(paddr_t addr, int len) {
   return ret;
 }
 
+
 static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
@@ -50,15 +51,61 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
+#define MTRACE_LINE 50 
+typedef struct{
+    paddr_t addr;
+    word_t data;
+    int op;
+} MTRACE_UNIT;
+
+static MTRACE_UNIT trace_buf[MTRACE_LINE];
+static int nr_mtrace = 0;
+
+static void mtrace_log(paddr_t addr, word_t data, int we) {
+    if(nr_mtrace < MTRACE_LINE) {
+        trace_buf[nr_mtrace].addr = addr;
+        trace_buf[nr_mtrace].data = data;
+        trace_buf[nr_mtrace].op = we;
+        nr_mtrace++;
+    } else {
+        for(int i=0; i<MTRACE_LINE-1; i++) {
+            trace_buf[i] = trace_buf[i+1];
+        }
+        trace_buf[nr_mtrace].addr = addr;
+        trace_buf[nr_mtrace].data = data;
+        trace_buf[nr_mtrace].op = we;
+    }
+}
+
+void mtrace_print(paddr_t addr, int size) {
+    if(nr_mtrace < MTRACE_LINE) {
+        for(int i=0; i<nr_mtrace; i++) {
+            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr->0x%08x : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
+        }
+    } else {
+        for(int i=0; i<MTRACE_LINE; i++) {
+            if(trace_buf[i].addr >= addr && trace_buf[i].addr < addr+4*size) printf("addr->0x%08x : data(0x%08x) op(%s)\n", trace_buf[i].addr, trace_buf[i].data, trace_buf[i].op==0? "read" : trace_buf[i].op==1? "sb" : trace_buf[i].op==2? "sh" : "sw");
+        }
+    }
+}
+
 word_t paddr_read(paddr_t addr, int len) {
-  if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+    if (likely(in_pmem(addr))) {
+        word_t read_data = pmem_read(addr, len);
+        mtrace_log(addr, read_data, 0);
+        return read_data;
+    }
+  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); mtrace_log(addr, mmio_data, 0); return mmio_data);
   out_of_bound(addr);
   return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
-  if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
-  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
+  if (likely(in_pmem(addr))) { 
+      pmem_write(addr, len, data); 
+      mtrace_log(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len);
+      return; 
+  }
+  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); mtrace_log(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len); return);
   out_of_bound(addr);
 }
