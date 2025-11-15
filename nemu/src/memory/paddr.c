@@ -53,7 +53,7 @@ void init_mem() {
 
 #ifdef CONFIG_MTRACE
 
-#define MTRACE_BASE 0x80000000
+#define MTRACE_BASE 0x80002000
 #define MTRACE_SIZE 400
 
 static void mtrace(paddr_t addr, word_t data, int op) {
