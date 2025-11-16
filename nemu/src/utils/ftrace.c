@@ -155,12 +155,12 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
     if(op == 2 && rs1 == 1 && rd == 0 && imm == 0 && call_depth > 0) {
         call_depth--;
         const char *current_func = find_function_name(pc);
-        const char *ret_to_func = find_function_name(call_stack[call_depth].ra);
+        const char *ret_to_func = find_function_name(dnpc);
 
         printf("0x%08x:", pc);
         for(int i=0; i<call_depth; i++) printf("  ");
         if(current_func && ret_to_func) {
-            printf("ret [%s] (0x%08x)\n", ret_to_func, call_stack[call_depth].ra);
+            printf("ret [%s] (0x%08x)\n", ret_to_func, dnpc);
         } else if(current_func) {
             printf("ret [0x%08x]\n", call_stack[call_depth].ra);
         } else {
