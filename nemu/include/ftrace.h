@@ -82,8 +82,6 @@ typedef struct {
 // 调用栈帧
 typedef struct {
     uint32_t pc;
-    uint32_t ra;
-    const char *caller;
 } CallFrame;
 
 
