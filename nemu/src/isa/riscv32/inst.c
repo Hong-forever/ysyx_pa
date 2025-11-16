@@ -59,7 +59,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 static int decode_exec(Decode *s) {
   s->dnpc = s->snpc;
 
-#define FTRACE_PRINT 1
+/* #define FTRACE_PRINT 1 */
 
 #define INSTPAT_INST(s) ((s)->isa.inst)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */ ) { \
@@ -112,7 +112,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, s->dnpc = (src1 >= src2)? s->pc + imm : s->snpc);
   
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = src1 + imm; IFDEF(FTRACE_PRINT, printf("pc: 0x%08x jalr dnpc: 0x%08x, rd: %d, rs1: %d, imm: %d\n", s->pc, s->dnpc, rd, rs1, imm)); ftrace_exec(s->pc, s->dnpc, rs1, rd, imm, 2); R(rd) = s->pc + 4);
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm; IFDEF(FTRACE_PRINT, printf("0x%08x jal 0x%08x\n", s->pc, s->dnpc); ftrace_exec(s->pc, s->dnpc, rs1, rd, imm, 1)); R(rd) = s->pc + 4);
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm; IFDEF(FTRACE_PRINT, printf("0x%08x jal 0x%08x\n", s->pc, s->dnpc)); ftrace_exec(s->pc, s->dnpc, rs1, rd, imm, 1); R(rd) = s->pc + 4);
 
   INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul    , M, R(rd) = src1 * src2);
   INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh   , M, R(rd) = ((int64_t)(int32_t)src1 * (int64_t)(int32_t)src2) >> 32);
