@@ -157,13 +157,14 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         const char *current_func = find_function_name(pc);
         const char *ret_to_func = find_function_name(call_stack[call_depth].ra);
 
+        printf("0x%08x:", pc);
         for(int i=0; i<call_depth; i++) printf("  ");
         if(current_func && ret_to_func) {
-            printf("[%s] ret [%s] (0x%08x)\n", current_func, ret_to_func, call_stack[call_depth].ra);
+            printf("ret [%s] (0x%08x)\n", ret_to_func, call_stack[call_depth].ra);
         } else if(current_func) {
-            printf("[%s] ret [0x%08x]\n", current_func, call_stack[call_depth].ra);
+            printf("ret [0x%08x]\n", call_stack[call_depth].ra);
         } else {
-            printf("[0x%08x] ret [0x%08x]\n", pc, call_stack[call_depth].ra);
+            printf("ret [0x%08x]\n", call_stack[call_depth].ra);
         }
     } else if((op == 1 || op == 2)) {
         const char *caller_name = find_function_name(pc);
@@ -176,13 +177,14 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
             call_depth++;
         }
 
+        printf("0x%08x:", pc);
         for(int i=0; i<call_depth-1; i++) printf("  ");
         if(caller_name && callee_name) {
-            printf("[%s] call [%s] (0x%08x)\n", caller_name, callee_name, dnpc);
+            printf("call [%s] (0x%08x)\n", callee_name, dnpc);
         } else if(callee_name) {
-            printf("[0x%08x] call [%s] (0x%08x)\n", pc, callee_name, dnpc);
+            printf("call [%s] (0x%08x)\n", callee_name, dnpc);
         } else {
-            printf("[0x%08x] call [0x%08x]\n", pc, dnpc);
+            printf("call [0x%08x]\n", dnpc);
         }
         
     }
