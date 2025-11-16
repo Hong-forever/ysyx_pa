@@ -1,7 +1,7 @@
 #include <ftrace.h>
 
 #define MAX_FUNCTIONS 1000
-#define MAX_CALL_DEPTH 64
+#define MAX_CALL_DEPTH 100
 
 static FunctionSymbol *func_table = NULL;
 static int func_count = 0;
