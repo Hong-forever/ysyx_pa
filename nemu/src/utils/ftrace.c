@@ -162,7 +162,7 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         if(current_func && ret_to_func) {
             printf("call_depth(%d)  ret [%s] (0x%08x)\n", call_depth, ret_to_func, dnpc);
         }
-    } else if((op == 1 )) {
+    } else if((op == 1 || op == 2)) {
         const char *caller_name = find_function_name(pc);
         const char *callee_name = find_function_name(dnpc);
 
