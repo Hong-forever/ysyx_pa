@@ -36,10 +36,12 @@ enum {
 #define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 20) | BITS(i, 19, 12) << 12 | BITS(i, 20, 20) << 11 | BITS(i, 30, 21) << 1; } while(0)
 #define immB() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 12) | BITS(i, 7, 7) << 11 | BITS(i, 30, 25) << 5 | BITS(i, 11, 8) << 1; } while(0)
 
+int rs1 = 0;
+int rs2 = 0;
 static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
   uint32_t i = s->isa.inst;
-  int rs1 = BITS(i, 19, 15);
-  int rs2 = BITS(i, 24, 20);
+  rs1 = BITS(i, 19, 15);
+  rs2 = BITS(i, 24, 20);
   *rd     = BITS(i, 11, 7);
   switch (type) {
     case TYPE_I: src1R();          immI(); break;
@@ -107,8 +109,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 110 ????? 11000 11", bltu   , B, s->dnpc = (src1 < src2)? s->pc + imm : s->snpc);
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, s->dnpc = (src1 >= src2)? s->pc + imm : s->snpc);
   
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = src1 + imm; printf("pc: 0x%08x jalr dnpc: 0x%08x\n, rd: %d, rs1: %d, imm: %d", s->pc, s->dnpc, rd, src1, imm); ftrace_exec(s->pc, s->dnpc, src1, rd, imm, 2); R(rd) = s->pc + 4);
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm; printf("0x%08x jal 0x%08x\n", s->pc, s->dnpc); ftrace_exec(s->pc, s->dnpc, src1, rd, imm, 1); R(rd) = s->pc + 4);
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = src1 + imm; printf("pc: 0x%08x jalr dnpc: 0x%08x\n, rd: %d, rs1: %d, imm: %d", s->pc, s->dnpc, rd, rs1, imm); ftrace_exec(s->pc, s->dnpc, rs1, rd, imm, 2); R(rd) = s->pc + 4);
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm; printf("0x%08x jal 0x%08x\n", s->pc, s->dnpc); ftrace_exec(s->pc, s->dnpc, rs1, rd, imm, 1); R(rd) = s->pc + 4);
 
   INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul    , M, R(rd) = src1 * src2);
   INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh   , M, R(rd) = ((int64_t)(int32_t)src1 * (int64_t)(int32_t)src2) >> 32);
