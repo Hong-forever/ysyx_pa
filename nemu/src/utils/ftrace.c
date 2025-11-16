@@ -165,11 +165,11 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
 
         for(int i=0; i<call_depth-1; i++) printf("  ");
         if(caller_name && callee_name) {
-            printf("call [%s] -> [%s] (0x%08x)\n", caller_name, callee_name, dnpc);
+            printf("[%s] call [%s] (0x%08x)\n", caller_name, callee_name, dnpc);
         } else if(callee_name) {
-            printf("call [0x%08x] -> [%s] (0x%08x)\n", pc, callee_name, dnpc);
+            printf("[0x%08x] call [%s] (0x%08x)\n", pc, callee_name, dnpc);
         } else {
-            printf("call [0x%08x] -> [0x%08x]\n", pc, dnpc);
+            printf("[0x%08x] call [0x%08x]\n", pc, dnpc);
         }
     } else if(op == 2 && rs1 == 1 && rd == 0 && imm == 0 && call_depth > 0) {
         call_depth--;
@@ -178,11 +178,11 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
 
         for(int i=0; i<call_depth; i++) printf("  ");
         if(current_func && ret_to_func) {
-            printf("ret [%s] -> [%s] (0x%08x)\n", current_func, ret_to_func, call_stack[call_depth].ra);
+            printf("[%s] ret [%s] (0x%08x)\n", current_func, ret_to_func, call_stack[call_depth].ra);
         } else if(current_func) {
-            printf("ret [%s] -> [0x%08x]\n", current_func, call_stack[call_depth].ra);
+            printf("[%s] ret [0x%08x]\n", current_func, call_stack[call_depth].ra);
         } else {
-            printf("ret [0x%08x] -> [0x%08x]\n", pc, call_stack[call_depth].ra);
+            printf("[0x%08x] ret [0x%08x]\n", pc, call_stack[call_depth].ra);
         }
     }
 }
