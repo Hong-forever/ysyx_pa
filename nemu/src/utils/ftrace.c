@@ -160,7 +160,11 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         printf("0x%08x: ", pc);
         /* for(int i=0; i<call_depth; i++) printf("  "); */
         if(current_func && ret_to_func) {
-            printf("ret  [%s] (0x%08x)\n", ret_to_func, dnpc);
+            printf("ret [%s] (0x%08x)\n", ret_to_func, dnpc);
+        } else if(current_func) {
+            printf("ret [0x%08x]\n", dnpc);
+        } else {
+            printf("ret [0x%08x]\n", dnpc);
         }
     } else if((op == 1 || op == 2)) {
         const char *caller_name = find_function_name(pc);
@@ -175,6 +179,11 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         /* for(int i=0; i<call_depth-1; i++) printf("  "); */
         if(caller_name && callee_name) {
             printf("call [%s] (0x%08x)\n", callee_name, dnpc);
+        } else if(callee_name) {
+            printf("call [%s] (0x%08x)\n", callee_name, dnpc);
+        } else {
+            printf("call [0x%08x]\n", dnpc);
         }
+        
     }
 }
