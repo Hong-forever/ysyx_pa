@@ -106,7 +106,7 @@ void init_ftrace(char *elf_file) {
     Elf32_Sym *syms = malloc(symtab_shdr->sh_size);
     fseek(fp, symtab_shdr->sh_offset, SEEK_SET);
     res = fread(syms, sizeof(Elf32_Sym), num_syms, fp);
-    assert(res == 1);
+    assert(res == num_syms);
 
     func_count = 0;
     for(int i=0; i<num_syms; i++) {
