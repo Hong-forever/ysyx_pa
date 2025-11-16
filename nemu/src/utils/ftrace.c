@@ -152,7 +152,7 @@ void init_ftrace(char *elf_file) {
 void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t imm, uint32_t op) { //op=1 jal, op=2 jalr
     if(!ftrace_enabled) return ;
 
-    if(op == 1 && rd == 1) {
+    if((op == 1 || op == 2) && rd == 1) {
         const char *caller_name = find_function_name(pc);
         const char *callee_name = find_function_name(dnpc);
 
