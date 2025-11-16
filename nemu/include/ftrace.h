@@ -79,10 +79,6 @@ typedef struct {
     uint32_t size;
 } FunctionSymbol;
 
-// 调用栈帧
-typedef struct {
-    uint32_t pc;
-} CallFrame;
 
 
 void init_ftrace(char *elf_file);

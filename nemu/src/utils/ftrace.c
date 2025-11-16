@@ -5,7 +5,6 @@
 
 static FunctionSymbol *func_table = NULL;
 static int func_count = 0;
-static CallFrame call_stack[MAX_CALL_DEPTH];
 static int call_depth = 0;
 static bool ftrace_enabled = false;
 
@@ -171,7 +170,6 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         const char *callee_name = find_function_name(dnpc);
 
         if(call_depth < MAX_CALL_DEPTH) {
-            call_stack[call_depth].pc = pc;
             call_depth++;
         }
 
