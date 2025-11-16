@@ -74,7 +74,6 @@ void init_ftrace(char *elf_file) {
     char *shstrtab = malloc(shstrtab_shdr->sh_size);
     fseek(fp, shstrtab_shdr->sh_offset, SEEK_SET);
     int res = fread(shstrtab, shstrtab_shdr->sh_size, 1, fp);
-    assert(res == 1);
 
     // find symtab and strtab
     Elf32_Shdr *symtab_shdr = NULL, *strtab_shdr = NULL;
