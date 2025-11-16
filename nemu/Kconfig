@@ -159,6 +159,9 @@ config MTRACE
   bool "Enable mtrace"
   default y 
 
+config FTRACE
+  bool "Enable ftrace"
+  default y 
 
 
 config DIFFTEST
