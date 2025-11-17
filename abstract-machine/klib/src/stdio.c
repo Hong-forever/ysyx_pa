@@ -16,7 +16,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
     char *origin_out = out; 
     
     while (*fmt) {
-        if (*fmt == '%') { 
+        if (*fmt == '%') {
             fmt++;
             
             int field_width = 0;
