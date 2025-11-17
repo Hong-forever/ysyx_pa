@@ -32,6 +32,7 @@ static word_t pmem_read(paddr_t addr, int len) {
   return ret;
 }
 
+
 static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
@@ -50,15 +51,34 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
+#ifdef CONFIG_MTRACE
+
+#define MTRACE_BASE 0x80000140
+#define MTRACE_SIZE 3
+
+static void mtrace(paddr_t addr, word_t data, int op) {
+    if(addr > MTRACE_BASE && addr < MTRACE_BASE+4*MTRACE_SIZE) printf("MTRACE===>>>  addr(0x%08x): data(0x%08x) op(%s)\n", addr, data, op==0? "read" : op==1? "sb  " : op==2? "sh  " : "sw  ");
+}
+
+#endif
+
 word_t paddr_read(paddr_t addr, int len) {
-  if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+    if (likely(in_pmem(addr))) {
+        word_t read_data = pmem_read(addr, len);
+        IFDEF(CONFIG_MTRACE, mtrace(addr, read_data, 0));
+        return read_data;
+    }
+  IFDEF(CONFIG_DEVICE, word_t mmio_data = mmio_read(addr, len); IFDEF(CONFIG_MTRACE, mtrace(addr, mmio_data, 0)); return mmio_data);
   out_of_bound(addr);
   return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
-  if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
-  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
+  if (likely(in_pmem(addr))) { 
+      pmem_write(addr, len, data); 
+      IFDEF(CONFIG_MTRACE, mtrace(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len));
+      return; 
+  }
+  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); IFDEF(CONFIG_MTRACE, mtrace(addr, len==1? data&0x000000ff : len==2? data&0x0000ffff : data&0xffffffff, len); return));
   out_of_bound(addr);
 }
