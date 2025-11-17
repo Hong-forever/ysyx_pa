@@ -33,8 +33,8 @@ char *strncpy(char *dst, const char *src, size_t n) {
 
 char *strcat(char *dst, const char *src) {
     size_t i, j;
-    for(i=strlen(dst), j=0; src[j] != '\0'; i++, j++)
-        dst[i] = src[j];
+    for(i=strlen(dst), j=0; src[j] != '\0'; j++)
+        dst[i+j] = src[j];
 
     dst[i+j] = '\0';
 
