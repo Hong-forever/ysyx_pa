@@ -58,6 +58,14 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
                     out = print_hex_to_buf(out, num, 1);
                     break;
                 }
+                case 'p': {
+                    void *ptr = va_arg(ap, void*);
+                    uintptr_t num = (uintptr_t)ptr;
+                    *out++ = '0';
+                    *out++ = 'x';
+                    out = print_hex_to_buf(out, num, 1);
+                    break;
+                }
                 case '%': {
                     *out++ = '%';
                     break;
