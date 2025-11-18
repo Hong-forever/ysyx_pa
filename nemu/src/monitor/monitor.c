@@ -113,7 +113,7 @@ void init_monitor(int argc, char *argv[]) {
     /* Open the log file. */
     init_log(log_file);
 
-    init_ftrace(elf_file);
+    IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 
     /* Initialize memory. */
     init_mem();

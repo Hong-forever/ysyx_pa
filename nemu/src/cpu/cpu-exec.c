@@ -33,6 +33,8 @@ uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
+LoopHistory_t loop_history[LOOP_HISTORY_SIZE];
+
 void device_update();
 
 
@@ -77,10 +79,52 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+void detect_loop_pattern() { 
+    static bool initialized = false;
+    if(!initialized) {
+        for(int i=0; i<LOOP_HISTORY_SIZE; i++) {
+            loop_history[i].pc = 0;
+            loop_history[i].count = 0;
+        }
+        initialized = true;
+    }
+
+    bool found = false;
+    for(int i=0; i<LOOP_HISTORY_SIZE; i++) {
+        if(loop_history[i].pc == cpu.pc) {
+            loop_history[i].count++;
+            found = true;
+            break;
+        }
+    }
+
+    if(!found) {
+        int min_index = 0;
+        uint32_t min_count = loop_history[0].count;
+        for(int i=1; i<LOOP_HISTORY_SIZE; i++) {
+            if (loop_history[i].count < min_count) {
+                min_count = loop_history[i].count;
+                min_index = i;
+            }
+        }
+        loop_history[min_index].pc = cpu.pc;
+        loop_history[min_index].count = 1;
+    }
+
+    for(int i = 0; i < LOOP_HISTORY_SIZE; i++) {
+        if(loop_history[i].count > MAX_LOOP_COUNT) {
+            printf("Detected loop pattern: PC 0x%08x executed over %u times\n", 
+                    loop_history[i].pc, MAX_LOOP_COUNT);
+            nemu_state.state = NEMU_STOP;
+            break;
+        }
+    }
+}
 static void exec_once(Decode *s, vaddr_t pc) {
     s->pc = pc;
     s->snpc = pc;
     isa_exec_once(s);
+    detect_loop_pattern();
     cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
     char *p = s->logbuf;
@@ -91,22 +135,22 @@ static void exec_once(Decode *s, vaddr_t pc) {
 #ifdef CONFIG_ISA_x86
     for (i = 0; i < ilen; i ++) {
 #else
-        for (i = ilen - 1; i >= 0; i --) {
+    for (i = ilen - 1; i >= 0; i --) {
 #endif
-            p += snprintf(p, 4, " %02x", inst[i]);
-        }
-        int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
-        int space_len = ilen_max - ilen;
-        if (space_len < 0) space_len = 0;
-        space_len = space_len * 3 + 1;
-        memset(p, ' ', space_len);
-        p += space_len;
+        p += snprintf(p, 4, " %02x", inst[i]);
+    }
+    int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
+    int space_len = ilen_max - ilen;
+    if (space_len < 0) space_len = 0;
+    space_len = space_len * 3 + 1;
+    memset(p, ' ', space_len);
+    p += space_len;
 
-        void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-        disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
+    void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+    disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
                 MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
 #endif
-    }
+}
 
 static void execute(uint64_t n) {
     Decode s;
