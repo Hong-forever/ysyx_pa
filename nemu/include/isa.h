@@ -55,4 +55,13 @@ word_t isa_query_intr();
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 void isa_difftest_attach();
 
+// loop detect
+typedef struct {
+    word_t pc;
+    word_t count;
+} LoopHistory_t;
+
+#define LOOP_HISTORY_SIZE 16
+#define MAX_LOOP_COUNT 100000  // 最大循环次数阈值
+
 #endif
