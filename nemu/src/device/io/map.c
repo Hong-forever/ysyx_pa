@@ -52,9 +52,17 @@ void init_map() {
     p_space = io_space;
 }
 
+#ifdef CONFIG_DTRACE
+void dtrace(const char *device_name, const char *dir, paddr_t addr) {
+    printf("Dtrace: Access device@%s for addr 0x%08x by %s\n", device_name, paddr_t, dir);
+}
+#endif
+
+
 word_t map_read(paddr_t addr, int len, IOMap *map) {
     assert(len >= 1 && len <= 8);
     check_bound(map, addr);
+    IFDEF(CONFIG_DTRACE, dtrace(map->name, "read", addr));
     paddr_t offset = addr - map->low;
     /* printf("BEFORE callback: map->space[offset]=%d\n", *(word_t*)(map->space + offset)); */
     invoke_callback(map->callback, offset, len, false); // prepare data to read
@@ -69,6 +77,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
 void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
     assert(len >= 1 && len <= 8);
     check_bound(map, addr);
+    IFDEF(CONFIG_DTRACE, dtrace(map->name, "write", addr));
     paddr_t offset = addr - map->low;
     host_write(map->space + offset, len, data);
     invoke_callback(map->callback, offset, len, true);
