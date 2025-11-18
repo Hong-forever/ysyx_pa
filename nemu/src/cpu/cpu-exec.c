@@ -113,8 +113,8 @@ void detect_loop_pattern() {
 
     for(int i = 0; i < LOOP_HISTORY_SIZE; i++) {
         if(loop_history[i].count > MAX_LOOP_COUNT) {
-            printf("Detected loop pattern: PC 0x%08x executed %u times\n", 
-                    loop_history[i].pc, loop_history[i].count);
+            printf("Detected loop pattern: PC 0x%08x executed over %u times\n", 
+                    loop_history[i].pc, MAX_LOOP_COUNT);
             nemu_state.state = NEMU_STOP;
             break;
         }
