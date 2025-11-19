@@ -36,23 +36,23 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
             printf("GPU_FBD: Error! Region out of bounds: x=%d y=%d w=%d h=%d screen=%dx%d\n", ctl->x, ctl->y, ctl->w, ctl->h, width, height);
         }
 
-
+/*
         uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
         for(int j=0; j<ctl->h; j++) {
             uint32_t *src = px + j * ctl->w;
             uint32_t *dst = fb + (ctl->y + j) * width + ctl->x;
             memcpy(dst, src, ctl->w * sizeof(uint32_t));
         }
-
+*/
         
-/*
+
         for(int j=0; j<ctl->h; j++) {
             for(int i=0; i<ctl->w; i++) {
                 uint32_t px_value = px[j * ctl->w + i];
                 outl((uintptr_t)FB_ADDR + (ctl->y * width + ctl->x + j * width + i) * sizeof(uint32_t), px_value);
             }
         }
-*/
+
 
     }
 
