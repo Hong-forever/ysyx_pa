@@ -11,8 +11,6 @@ void __am_gpu_init() {
     printf("fb addr : 0x%08x, w=%d, h=%d\n", fb, w, h);
     for(i=0; i<w*h; i++) fb[i] = i;
     outl(SYNC_ADDR, 1);
-    int sync = inl(SYNC_ADDR);
-    printf("sync: %d\n", sync);
 }
 
 
