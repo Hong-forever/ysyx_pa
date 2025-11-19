@@ -1,5 +1,6 @@
 #include <am.h>
 #include <nemu.h>
+#include <klib.h>
 
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
@@ -7,6 +8,7 @@ void __am_gpu_init() {
     int i;
     int w=(int)inw(VGACTL_ADDR+2); int h=(int)inw(VGACTL_ADDR);
     uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+    printf("fb addr : 0x%08x, w=%d, h=%d\n", fb, w, h);
     for(i=0; i<w*h; i++) fb[i] = i;
     outl(SYNC_ADDR, 1);
 }
