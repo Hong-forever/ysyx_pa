@@ -156,11 +156,15 @@ config ITRACE_COND
   default "true"
 
 config MTRACE
-  bool "Enable mtrace"
+  bool "Enable memory trace"
   default y 
 
 config FTRACE
-  bool "Enable ftrace"
+  bool "Enable function trace"
+  default y 
+
+config DTRACE
+  bool "Enable device trace"
   default y 
 
 
