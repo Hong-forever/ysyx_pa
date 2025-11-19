@@ -5,14 +5,6 @@
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
 void __am_gpu_init() {
-    int i;
-    int w=(int)inw(VGACTL_ADDR+2); int h=(int)inw(VGACTL_ADDR);
-    uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-    printf("fb addr : 0x%08x, w=%d, h=%d\n", fb, w, h);
-    for(i=0; i<w*h; i++) fb[i] = i;
-    outl(SYNC_ADDR, 1);
-    int sync = inl(SYNC_ADDR);
-    printf("sync: %d\n", sync);
 }
 
 
@@ -27,6 +19,14 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
+    int width = (int)inw(VGACTL_ADDR+2); 
+    uint32_t *px = (uint32_t *)ctl->pixels;
+    for(int j=0; j<ctl->h; j++) {
+        for(int i=0; i<ctl->w; i++) {
+            uint32_t px_value = px[j * ctl->w + i];
+            outl(FB_ADDR + ctl->y * width + ctl->x + j * ctl->w + i, px_value);
+        }
+    }
     if (ctl->sync) {
         outl(SYNC_ADDR, 1);
     }
