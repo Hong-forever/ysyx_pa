@@ -72,7 +72,7 @@ static inline void update_screen() {
 #endif
 
 void vga_update_screen() {
-    uint32_t *sync = vgactl_port_base + 4;
+    uint32_t *sync = vgactl_port_base + 1;
     if(*sync) {
         update_screen();
         /* *sync = 0; */
