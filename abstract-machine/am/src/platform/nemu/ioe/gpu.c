@@ -26,6 +26,7 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
 
     int width = (int)(wh >> 16);
     int height = (int)(wh & 0xffff);
+    printf("%dx%d\n", width, height);
 
     if(ctl == NULL || ctl->pixels == NULL) return;
 
@@ -35,12 +36,10 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
         printf("GPU_FBD: Error! Region out of bounds: x=%d y=%d w=%d h=%d screen=%dx%d\n", ctl->x, ctl->y, ctl->w, ctl->h, width, height);
     }
 
-    if(px != NULL) {
-        for(int j=0; j<ctl->h; j++) {
-            for(int i=0; i<ctl->w; i++) {
-                uint32_t px_value = px[j * ctl->w + i];
-                outl((uintptr_t)FB_ADDR + (ctl->y * width + ctl->x + j * ctl->w + i), px_value);
-            }
+    for(int j=0; j<ctl->h; j++) {
+        for(int i=0; i<ctl->w; i++) {
+            uint32_t px_value = px[j * ctl->w + i];
+            outl((uintptr_t)FB_ADDR + (ctl->y * width + ctl->x + j * ctl->w + i), px_value);
         }
     }
     if (ctl->sync) {
