@@ -25,7 +25,7 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
         for(int j=0; j<ctl->h; j++) {
             for(int i=0; i<ctl->w; i++) {
                 uint32_t px_value = px[j * ctl->w + i];
-                outl(FB_ADDR + ctl->y * width + ctl->x + j * ctl->w + i, px_value);
+                outl(FB_ADDR + (ctl->y * width + ctl->x + j * ctl->w + i)*sizeof(uint32_t), px_value);
             }
         }
     }
