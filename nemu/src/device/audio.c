@@ -56,7 +56,7 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
   if (to_copy < len) memset(stream + to_copy, 0, len - to_copy);
 
   played += to_copy;
-  audio_base[reg_count] = (played >= produced) ? 0 : played;
+  audio_base[reg_count] = (played >= produced) ? 0 : produced - played;
 
   if (played >= produced) {
     // 播放结束后暂停音频线程
@@ -86,7 +86,7 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   uint32_t idx = offset >> 2;
   if(!is_write) {
     if (idx == reg_sbuf_size) audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-    if (idx == reg_count)     audio_base[reg_count]     = (played >= produced) ? 0 : played;
+    if (idx == reg_count)     audio_base[reg_count]     = (played >= produced) ? 0 : produced - played;
     return;
   }
   if (idx == reg_init && audio_base[reg_init]) audio_start();
