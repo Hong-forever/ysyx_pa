@@ -71,6 +71,9 @@ static void audio_stop() {
   SDL_CloseAudio();
   SDL_QuitSubSystem(SDL_INIT_AUDIO);
   audio_opened = false;
+  rpos = 0;
+  played = 0;
+  audio_base[reg_count] = 0;
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {

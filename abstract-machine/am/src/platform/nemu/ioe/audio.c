@@ -11,7 +11,6 @@
 
 static uint32_t sbuf_size = 0;
 static uint32_t wpos = 0;
-static uint64_t end_pos = 0;
 
 
 void __am_audio_init()
@@ -35,24 +34,14 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl)
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 {
-    uint32_t played = inl(AUDIO_COUNT_ADDR);
-    stat->count = played;
-    if(end_pos && played >= end_pos) {
-        outl(AUDIO_INIT_ADDR, 0); // 关闭
-        end_pos = 0;
-    }
+    stat->count = inl(AUDIO_COUNT_ADDR);
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
     if (ctl->buf.start == NULL)
         return;
-        
     uint32_t wlen = ctl->buf.end - ctl->buf.start;
-
-    if(wlen == 0)
-        return;
-
     wpos += wlen;
     assert(wpos <= sbuf_size);
 
@@ -66,6 +55,4 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     uint32_t remain = wlen - first;
     if (remain)
         memcpy(dst, src + first, remain);
-
-    end_pos = wpos;
 }
