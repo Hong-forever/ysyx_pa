@@ -78,17 +78,13 @@ static void audio_start() {
   want.callback = sdl_audio_callback;
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
     SDL_PauseAudio(0);
+    audio_base[reg_count] = produced;
     started = true;
   }
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   uint32_t idx = offset >> 2;
-  if(!is_write) {
-    if (idx == reg_sbuf_size) audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-    if (idx == reg_count)     audio_base[reg_count]     = (played >= produced) ? 0 : produced - played;
-    return;
-  }
   if (idx == reg_init && audio_base[reg_init]) audio_start();
 }
 
