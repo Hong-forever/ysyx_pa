@@ -38,7 +38,7 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-    if(ctl == NULL || ctl->buf.start == NULL)
+    if(ctl->buf.start == NULL)
         return;
     uint32_t wlen = (uint32_t)(ctl->buf.end - ctl->buf.start);
     assert(wpos <= sbuf_size);
