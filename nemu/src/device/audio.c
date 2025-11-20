@@ -74,6 +74,7 @@ static void audio_start() {
   want.channels = audio_base[reg_channels];
   want.samples  = audio_base[reg_samples];
   want.format   = AUDIO_S16SYS;
+  want.userdata = NULL;
   want.callback = sdl_audio_callback;
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
     rpos = 0; played = 0;
