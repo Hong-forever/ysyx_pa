@@ -20,8 +20,7 @@ void __am_audio_init()
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
-    // cfg->present = (sbuf_size != 0);
-    cfg->present = 0;
+    cfg->present = (sbuf_size != 0);
     cfg->bufsize = sbuf_size;
 }
 
@@ -57,6 +56,6 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 
     wpos += wlen;
 
-    if(wlen < 4096)
+    if(wlen < 4096 || wpos == sbuf_size)
         outl(AUDIO_INIT_ADDR, 1);
 }
