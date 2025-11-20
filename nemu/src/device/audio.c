@@ -36,7 +36,7 @@ static uint32_t played   = 0;
 static uint32_t rpos     = 0;
 static bool     started  = false;
 
-static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
+void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
   if (!started || produced == 0) { memset(stream, 0, len); return; }
 
   uint32_t remain_total = produced - played;
