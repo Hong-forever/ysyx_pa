@@ -20,7 +20,8 @@ void __am_audio_init()
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
-    cfg->present = (sbuf_size != 0);
+    // cfg->present = (sbuf_size != 0);
+    cfg->present = 0;
     cfg->bufsize = sbuf_size;
 }
 
@@ -41,7 +42,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if(ctl->buf.start == NULL)
         return;
     uint32_t wlen = (uint32_t)(ctl->buf.end - ctl->buf.start);
-    // assert(wpos+wlen <= sbuf_size);
+    assert(wpos+wlen <= sbuf_size);
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
     uint32_t offset = (uint32_t)(wpos % sbuf_size);
