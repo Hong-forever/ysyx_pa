@@ -32,8 +32,6 @@ static uint8_t  *sbuf        = NULL;
 static uint32_t *audio_base  = NULL;
 
 static volatile uint32_t rpos = 0;    // 设备侧读指针
-static volatile uint64_t played = 0;  // 已输出字节累计
-static bool audio_opened = false;
 
 static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
   int remain = len, off = 0;
@@ -45,47 +43,27 @@ static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
     off += chunk;
     remain -= chunk;
   }
-  played += len;
-  audio_base[reg_count] = (uint32_t)played;
+  audio_base[reg_count] = rpos;
 }
 
 static void audio_start() {
-  if (audio_opened) return;
   SDL_AudioSpec want;
   memset(&want, 0, sizeof(want));
   want.freq     = audio_base[reg_freq];
   want.channels = audio_base[reg_channels];
   want.samples  = audio_base[reg_samples];
+  want.userdata = NULL;
   want.format   = AUDIO_S16SYS;
   want.callback = sdl_audio_callback;
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
-    rpos = 0; played = 0;
-    audio_base[reg_count] = 0;
     SDL_PauseAudio(0);
-    audio_opened = true;
   }
-}
-
-static void audio_stop() {
-  if (!audio_opened) return;
-  SDL_CloseAudio();
-  SDL_QuitSubSystem(SDL_INIT_AUDIO);
-  audio_opened = false;
-  rpos = 0;
-  played = 0;
-  audio_base[reg_count] = 0;
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   uint32_t idx = offset >> 2;
-  if (!is_write) {
-    if (idx == reg_sbuf_size) audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-    if (idx == reg_count)     audio_base[reg_count]     = (uint32_t)played;
-    return;
-  }
   if (idx == reg_init) {
     if (audio_base[reg_init]) audio_start();
-    else audio_stop();
   }
 }
 

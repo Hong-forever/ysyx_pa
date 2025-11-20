@@ -29,7 +29,6 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl)
     outl(AUDIO_FREQ_ADDR, ctrl->freq);
     outl(AUDIO_CHANNELS_ADDR, ctrl->channels);
     outl(AUDIO_SAMPLES_ADDR, ctrl->samples);
-    outl(AUDIO_INIT_ADDR, 1); // 开启
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat)
@@ -55,4 +54,6 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     uint32_t remain = wlen - first;
     if (remain)
         memcpy(dst, src + first, remain);
+    if(wlen < 4096)
+        outl(AUDIO_INIT_ADDR, 1);
 }
