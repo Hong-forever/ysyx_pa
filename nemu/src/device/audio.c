@@ -61,13 +61,15 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     started = false;
+    produced = 0;
+    played   = 0;
+    rpos     = 0;
   }
 }
 
 static void audio_start() {
   if (started || produced == 0) return;
-  SDL_AudioSpec want;
-  memset(&want, 0, sizeof(want));
+  SDL_AudioSpec want = {0};
   want.freq     = audio_base[reg_freq];
   want.channels = audio_base[reg_channels];
   want.samples  = audio_base[reg_samples];
