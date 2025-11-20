@@ -42,6 +42,8 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
 
   // 拷贝有效数据
   int left = to_copy, off = 0;
+  printf("Audio callback len: %d, to_copy: %d, rpos: %d\n", len, to_copy, rpos);
+  
   while (left) {
     int chunk = CONFIG_SB_SIZE - rpos;
     if (chunk > left) chunk = left;
