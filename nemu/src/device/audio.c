@@ -92,10 +92,8 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
 static void sbuf_io_handler(uint32_t offset, int len, bool is_write) {
   if (is_write) {
     // 首次写阶段累加有效数据大小
-    if (!started) {
       uint32_t end_off = offset + len;
       if (end_off > produced) produced = end_off; // 以最大写偏移作为长度
-    }
   }
 }
 
