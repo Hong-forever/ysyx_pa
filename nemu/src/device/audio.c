@@ -34,10 +34,8 @@ static uint32_t *audio_base = NULL;
 static uint32_t produced = 0;   // 已写入总字节（一次性写满）
 static uint32_t played   = 0;   // 已播放字节
 static uint32_t rpos     = 0;   // 环形读指针
-static bool     started  = false;
 
 static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
-  if (!started || produced == 0) { memset(stream, 0, len); return; }
 
   uint32_t remain_total = produced - played;
   int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
@@ -63,12 +61,11 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
     SDL_PauseAudio(1);
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
-    started = false;
   }
 }
 
 static void audio_start() {
-  if (started || produced == 0) return;
+  if (produced == 0) return;
   SDL_AudioSpec want;
   memset(&want, 0, sizeof(want));
   want.freq     = audio_base[reg_freq];
@@ -79,7 +76,7 @@ static void audio_start() {
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
     SDL_PauseAudio(0);
     audio_base[reg_count] = produced;
-    started = true;
+    printf("%d\n", produced);
   }
 }
 
