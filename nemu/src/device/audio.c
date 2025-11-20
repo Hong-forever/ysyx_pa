@@ -16,6 +16,7 @@
 #include <common.h>
 #include <device/map.h>
 #include <SDL2/SDL.h>
+#include <string.h>
 
 enum {
   reg_freq,
@@ -27,21 +28,89 @@ enum {
   nr_reg
 };
 
-static uint8_t *sbuf = NULL;
+static uint8_t  *sbuf       = NULL;
 static uint32_t *audio_base = NULL;
 
+static uint32_t produced = 0;   // 已写入总字节（一次性写满）
+static uint32_t played   = 0;   // 已播放字节
+static uint32_t rpos     = 0;   // 环形读指针
+static bool     started  = false;
+
+static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
+  if (!started || produced == 0) { memset(stream, 0, len); return; }
+
+  uint32_t remain_total = produced - played;
+  int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
+
+  // 拷贝有效数据
+  int left = to_copy, off = 0;
+  while (left) {
+    int chunk = CONFIG_SB_SIZE - rpos;
+    if (chunk > left) chunk = left;
+    memcpy(stream + off, sbuf + rpos, chunk);
+    rpos = (rpos + chunk) % CONFIG_SB_SIZE;
+    off += chunk;
+    left -= chunk;
+  }
+  // 不足填静音
+  if (to_copy < len) memset(stream + to_copy, 0, len - to_copy);
+
+  played += to_copy;
+  audio_base[reg_count] = (played >= produced) ? 0 : produced - played;
+
+  if (played >= produced) {
+    // 播放结束后暂停音频线程
+    SDL_PauseAudio(1);
+    SDL_CloseAudio();
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    started = false;
+  }
+}
+
+static void audio_start() {
+  if (started || produced == 0) return;
+  SDL_AudioSpec want;
+  memset(&want, 0, sizeof(want));
+  want.freq     = audio_base[reg_freq];
+  want.channels = audio_base[reg_channels];
+  want.samples  = audio_base[reg_samples];
+  want.format   = AUDIO_S16SYS;
+  want.callback = sdl_audio_callback;
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
+    SDL_PauseAudio(0);
+    audio_base[reg_count] = produced;
+    started = true;
+  }
+}
+
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
+  uint32_t idx = offset >> 2;
+  if (idx == reg_init && audio_base[reg_init]) audio_start();
+}
+
+// 统计写入（假设一次测试阶段总数据不会超过缓冲大小）
+static void sbuf_io_handler(uint32_t offset, int len, bool is_write) {
+  if (is_write) {
+    // 首次写阶段累加有效数据大小
+    if (!started) {
+      uint32_t end_off = offset + len;
+      if (end_off > produced) produced = end_off; // 以最大写偏移作为长度
+    }
+  }
 }
 
 void init_audio() {
-  uint32_t space_size = sizeof(uint32_t) * nr_reg;
-  audio_base = (uint32_t *)new_space(space_size);
+  uint32_t sz = sizeof(uint32_t) * nr_reg;
+  audio_base = (uint32_t *)new_space(sz);
 #ifdef CONFIG_HAS_PORT_IO
-  add_pio_map ("audio", CONFIG_AUDIO_CTL_PORT, audio_base, space_size, audio_io_handler);
+  add_pio_map("audio", CONFIG_AUDIO_CTL_PORT, audio_base, sz, audio_io_handler);
 #else
-  add_mmio_map("audio", CONFIG_AUDIO_CTL_MMIO, audio_base, space_size, audio_io_handler);
+  add_mmio_map("audio", CONFIG_AUDIO_CTL_MMIO, audio_base, sz, audio_io_handler);
 #endif
+  for (int i = 0; i < nr_reg; i++) audio_base[i] = 0;
+  audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
+  audio_base[reg_count]     = 0;
 
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
-  add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
+  add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, sbuf_io_handler);
 }
