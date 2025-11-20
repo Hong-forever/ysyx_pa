@@ -17,6 +17,8 @@ static uint32_t start = 0;
 void __am_audio_init()
 {
     sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+    wpos = 0;
+    start = 0;
 }
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
@@ -60,8 +62,8 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
     // printf("start: %d\n", start);
 
-    if(!start) {
+    if(start == 3) {
         outl(AUDIO_INIT_ADDR, 1);
-        start = 1;
     }
+    start++;
 }
