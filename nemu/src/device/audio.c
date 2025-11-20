@@ -31,16 +31,18 @@ enum {
 static uint8_t  *sbuf       = NULL;
 static uint32_t *audio_base = NULL;
 
-static uint32_t produced = 0;
-static uint32_t played   = 0;
-static uint32_t rpos     = 0;
+static uint32_t produced = 0;   // 已写入总字节（一次性写满）
+static uint32_t played   = 0;   // 已播放字节
+static uint32_t rpos     = 0;   // 环形读指针
 static bool     started  = false;
 
-void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
+static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
   if (!started || produced == 0) { memset(stream, 0, len); return; }
 
   uint32_t remain_total = produced - played;
   int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
+
+  // 拷贝有效数据
   int left = to_copy, off = 0;
   while (left) {
     int chunk = CONFIG_SB_SIZE - rpos;
@@ -50,6 +52,7 @@ void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
     off += chunk;
     left -= chunk;
   }
+  // 不足填静音
   if (to_copy < len) memset(stream + to_copy, 0, len - to_copy);
 
   played += to_copy;
@@ -61,25 +64,21 @@ void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     started = false;
-    produced = 0;
-    played   = 0;
-    rpos     = 0;
   }
 }
 
 static void audio_start() {
   if (started || produced == 0) return;
-  SDL_AudioSpec want = {0};
+  SDL_AudioSpec want;
+  memset(&want, 0, sizeof(want));
   want.freq     = audio_base[reg_freq];
   want.channels = audio_base[reg_channels];
   want.samples  = audio_base[reg_samples];
   want.format   = AUDIO_S16SYS;
-  want.userdata = NULL;
   want.callback = sdl_audio_callback;
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
-    rpos = 0; played = 0;
-    audio_base[reg_count] = produced;
     SDL_PauseAudio(0);
+    audio_base[reg_count] = produced;
     started = true;
   }
 }
@@ -111,6 +110,7 @@ void init_audio() {
   for (int i = 0; i < nr_reg; i++) audio_base[i] = 0;
   audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
   audio_base[reg_count]     = 0;
+
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
   add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, sbuf_io_handler);
 }
