@@ -38,10 +38,9 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-    if (ctl->buf.start == NULL)
+    if(ctl == NULL || ctl->buf.start == NULL)
         return;
-    uint32_t wlen = ctl->buf.end - ctl->buf.start;
-    wpos += wlen;
+    uint32_t wlen = (uint32_t)(ctl->buf.end - ctl->buf.start);
     assert(wpos <= sbuf_size);
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
@@ -54,6 +53,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     uint32_t remain = wlen - first;
     if (remain)
         memcpy(dst, src + first, remain);
+
+    wpos += wlen;
+
     if(wlen < 4096)
         outl(AUDIO_INIT_ADDR, 1);
 }
