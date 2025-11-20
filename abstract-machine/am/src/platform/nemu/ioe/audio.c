@@ -11,6 +11,7 @@
 
 static uint32_t sbuf_size = 0;
 static uint32_t wpos = 0;
+static uint32_t start = 0;
 
 
 void __am_audio_init()
@@ -41,8 +42,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (ctl->buf.start == NULL)
         return;
     uint32_t wlen = ctl->buf.end - ctl->buf.start;
-    wpos += wlen;
-    assert(wpos <= sbuf_size);
+    assert(wpos+wlen <= sbuf_size);
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
     uint32_t offset = (uint32_t)(wpos % sbuf_size);
@@ -54,6 +54,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     uint32_t remain = wlen - first;
     if (remain)
         memcpy(dst, src + first, remain);
-    if(wlen < 4096)
+    wpos += wlen;
+    if(!start) {
         outl(AUDIO_INIT_ADDR, 1);
+        start = 1;
+    }
 }
