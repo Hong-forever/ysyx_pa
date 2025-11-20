@@ -47,12 +47,12 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     // assert(wpos+wlen <= sbuf_size);
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
-    uint32_t offset = (uint32_t)(wpos % sbuf_size);
+    wpos = wpos % sbuf_size;
     uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
 
-    uint32_t first = sbuf_size - offset;
+    uint32_t first = sbuf_size - wpos;
     if(first > wlen) first = wlen;
-    memcpy(dst + offset, src, first);
+    memcpy(dst + wpos, src, first);
     uint32_t remain = wlen - first;
     if (remain)
         memcpy(dst, src + first, remain);
