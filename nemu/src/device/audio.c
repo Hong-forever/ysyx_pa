@@ -58,12 +58,12 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
   played += to_copy;
   audio_base[reg_count] = (played >= produced) ? 0 : produced - played;
 
-  if (played >= produced) {
-    // 播放结束后暂停音频线程
-    SDL_PauseAudio(1);
-    SDL_CloseAudio();
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
-  }
+  // if (played >= produced) {
+  //   // 播放结束后暂停音频线程
+  //   SDL_PauseAudio(1);
+  //   SDL_CloseAudio();
+  //   SDL_QuitSubSystem(SDL_INIT_AUDIO);
+  // }
 }
 
 static void audio_start() {
