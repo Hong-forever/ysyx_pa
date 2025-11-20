@@ -56,11 +56,13 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len) {
   if (to_copy < len) memset(stream + to_copy, 0, len - to_copy);
 
   played += to_copy;
-  audio_base[reg_count] = (played >= produced) ? 0 : (produced - played);
+  audio_base[reg_count] = (played >= produced) ? 0 : played;
 
   if (played >= produced) {
     // 播放结束后暂停音频线程
     SDL_PauseAudio(1);
+    SDL_CloseAudio();
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
     started = false;
   }
 }
@@ -75,8 +77,6 @@ static void audio_start() {
   want.format   = AUDIO_S16SYS;
   want.callback = sdl_audio_callback;
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
-    rpos = 0; played = 0;
-    audio_base[reg_count] = produced;
     SDL_PauseAudio(0);
     started = true;
   }
@@ -84,11 +84,6 @@ static void audio_start() {
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   uint32_t idx = offset >> 2;
-  if (!is_write) {
-    if (idx == reg_sbuf_size) audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-    if (idx == reg_count)     audio_base[reg_count]     = (played >= produced) ? 0 : (produced - played);
-    return;
-  }
   if (idx == reg_init && audio_base[reg_init]) audio_start();
 }
 
