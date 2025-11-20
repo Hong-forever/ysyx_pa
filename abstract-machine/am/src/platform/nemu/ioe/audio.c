@@ -11,6 +11,7 @@
 
 static uint32_t sbuf_size = 0;
 static uint32_t wpos = 0;
+static int start = 0;
 
 
 void __am_audio_init()
@@ -56,6 +57,8 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 
     wpos += wlen;
 
-    if(wlen < 4096 || wpos == sbuf_size)
+    if(!start) {
         outl(AUDIO_INIT_ADDR, 1);
+        start = 1;
+    }
 }
