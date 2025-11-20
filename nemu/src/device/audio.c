@@ -84,11 +84,6 @@ static void audio_start() {
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   uint32_t idx = offset >> 2;
-  if(!is_write) {
-    if (idx == reg_sbuf_size) audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
-    if (idx == reg_count)     audio_base[reg_count]     = (played >= produced) ? 0 : produced - played;
-    return;
-  }
   if (idx == reg_init && audio_base[reg_init]) audio_start();
 }
 
