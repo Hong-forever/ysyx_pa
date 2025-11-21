@@ -52,7 +52,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         start = end;
         end = temp;
     }
-    uint32_t wlen_all = (uint32_t)((uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start);
+    uint32_t wlen_all = end - start;
     while (wlen_all) {
         uint32_t wlen = wlen_all > 4096 ? 4096: wlen_all;
         printf("Audio play wlen_all: %x, start: %p, end: %p\n", wlen_all, start, end);
