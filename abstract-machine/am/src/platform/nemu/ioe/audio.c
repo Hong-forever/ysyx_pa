@@ -53,8 +53,6 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
             printf("Audio wait... times: %d\r", ++times);
         };
 
-        // assert(wpos+wlen <= sbuf_size);
-
         uint8_t *src = (uint8_t *)ctl->buf.start;
         wpos = wpos % sbuf_size;
         // printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
@@ -71,6 +69,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 
         if (start < 1)
             start++;
+
+        uint32_t current_count = inl(AUDIO_COUNT_ADDR);
+        outl(AUDIO_COUNT_ADDR, current_count + wlen);
 
         wlen_all -= wlen;
         // printf("wpos: %d, wlen: %d\n", wpos, wlen);

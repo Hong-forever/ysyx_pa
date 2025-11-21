@@ -98,7 +98,6 @@ static void sbuf_io_handler(uint32_t offset, int len, bool is_write)
     if (is_write) {
         uint32_t end_off = offset + len;
         wpos = end_off; // 以最大写偏移作为长度
-        audio_base[reg_count] = wpos;
         // printf("write pos%%10000: %d\n", wpos%10000);
     }
 }
