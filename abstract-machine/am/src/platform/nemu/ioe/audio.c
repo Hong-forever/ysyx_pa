@@ -60,7 +60,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         first = wlen;
     memcpy(dst + wpos, src, first);
     uint32_t remain = wlen - first;
-    if (remain)
+    if (remain > 0)
         memcpy(dst, src + first, remain);
     wpos = (wpos + wlen) % sbuf_size;
 
