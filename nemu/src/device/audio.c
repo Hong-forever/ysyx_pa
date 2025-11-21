@@ -59,7 +59,6 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
     if (to_copy < len) {
         memset(stream + to_copy, 0, len - to_copy);
         rpos += (len - to_copy) % CONFIG_SB_SIZE;
-        wpos = rpos;
 
         audio_base[reg_count] = 0;
         return ;
