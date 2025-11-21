@@ -50,7 +50,8 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     while (wlen_all) {
         printf("Audio play wlen: %x, sbuf_size: %x   ", wlen, sbuf_size);
         while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
-            printf("Audio wait... times: %d\r", ++times);
+            // printf("Audio wait... times: %d\r", ++times);
+            ++times;
         };
 
         uint8_t *src = (uint8_t *)ctl->buf.start;
