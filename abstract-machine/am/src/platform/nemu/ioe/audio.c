@@ -17,8 +17,9 @@ void __am_audio_init()
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
-    // cfg->present = (sbuf_size != 0);
-    cfg->present = false;
+    uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+    cfg->present = true;
+    cfg->bufsize = sbuf_size;
 }
 
 void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl)
@@ -36,17 +37,35 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-  uint8_t *audio_data = (ctl->buf).start;
-  uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
-  //uint32_t cnt = inl(AUDIO_COUNT_ADDR);
-  uint32_t len = (ctl->buf).end - (ctl->buf).start;
-  
-  //while(len > buf_size - cnt);
+  volatile uint8_t *ab = (volatile uint8_t *)(uintptr_t)AUDIO_SBUF_ADDR;
+  const uint8_t *src = (const uint8_t *)(ctl->buf).start;
+  uint32_t len = (uint32_t)((ctl->buf).end - (ctl->buf).start);
 
-  uint8_t *ab = (uint8_t *)(uintptr_t)AUDIO_SBUF_ADDR;  //参考GPU部分
-  for(int i = 0; i < len; i++){
-    ab[sbuf_pos] = audio_data[i];
-    sbuf_pos = (sbuf_pos + 1) % sbuf_size;  
+  if (len == 0) return;
+
+  uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+
+  while (len > 0) {
+    uint32_t used = inl(AUDIO_COUNT_ADDR);
+    uint32_t free = (used < sbuf_size) ? (sbuf_size - used) : 0;
+    if (free == 0) break; // 没空间了，交还控制权，稍后再写
+
+    uint32_t n = (len < free) ? len : free;
+
+    // 按环形缓冲写入，可能需要分两段
+    uint32_t tail = sbuf_size - sbuf_pos;
+    uint32_t n1 = (n < tail) ? n : tail;
+    for (uint32_t i = 0; i < n1; i++) ab[sbuf_pos + i] = src[i];
+    sbuf_pos = (sbuf_pos + n1) % sbuf_size;
+
+    if (n > n1) {
+      uint32_t n2 = n - n1;
+      for (uint32_t i = 0; i < n2; i++) ab[i] = src[n1 + i];
+      sbuf_pos = (sbuf_pos + n2) % sbuf_size;
+    }
+
+    outl(AUDIO_COUNT_ADDR, inl(AUDIO_COUNT_ADDR)+ n);
+    src += n;
+    len -= n;
   }
-  outl(AUDIO_COUNT_ADDR, inl(AUDIO_COUNT_ADDR) + len);
 }
