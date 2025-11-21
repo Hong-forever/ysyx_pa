@@ -31,9 +31,8 @@ enum {
 static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
-static uint32_t wpos = 0; 
-static uint32_t rpos = 0; 
-static uint32_t last_init = 0; 
+static uint32_t wpos = 0; // 已播放字节
+static uint32_t rpos = 0; // 环形读指针
 
 static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
 {
@@ -89,23 +88,11 @@ static void audio_start()
     }
 }
 
-static void audio_stop()
-{
-    SDL_PauseAudio(1);
-    SDL_CloseAudio();
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
-}
-
 static void audio_io_handler(uint32_t offset, int len, bool is_write)
 {
     uint32_t idx = offset >> 2;
-    if (idx == reg_init) {
-        if(audio_base[reg_init] == 1)
-            audio_start();
-        else if(audio_base[reg_init] == last_init)
-            audio_stop();
-    }
-    last_init = audio_base[reg_init];
+    if (idx == reg_init && audio_base[reg_init] == 1)
+        audio_start();
 }
 
 static void sbuf_io_handler(uint32_t offset, int len, bool is_write)
