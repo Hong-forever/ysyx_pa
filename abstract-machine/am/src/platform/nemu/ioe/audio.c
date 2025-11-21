@@ -49,7 +49,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
     wpos = wpos % sbuf_size;
-    printf("Audio play 2 wlen: %u, wpos: %u\n", wlen, wpos);
+    printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
     uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
 
     uint32_t first = sbuf_size - wpos;
@@ -59,7 +59,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (remain)
         memcpy(dst, src + first, remain);
     wpos += wlen;
-    printf("Audio play after add: %u, wpos: %u\n", wlen, wpos);
+    printf("Audio play after add: %x, wpos: %x\n", wlen, wpos);
 
     if(!start) {
         outl(AUDIO_INIT_ADDR, 1);
