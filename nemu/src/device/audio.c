@@ -87,7 +87,6 @@ static void audio_start()
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
         SDL_PauseAudio(0);
         audio_base[reg_count] = wpos;
-        printf("start wpos: %d\n", wpos);
     }
 }
 

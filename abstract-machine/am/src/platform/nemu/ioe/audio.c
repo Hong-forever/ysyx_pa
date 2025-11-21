@@ -11,6 +11,7 @@
 
 static uint32_t sbuf_size = 0;
 static uint32_t wpos = 0;
+static uint32_t start = 0;
 
 
 void __am_audio_init()
@@ -30,7 +31,6 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl)
     outl(AUDIO_FREQ_ADDR, ctrl->freq);
     outl(AUDIO_CHANNELS_ADDR, ctrl->channels);
     outl(AUDIO_SAMPLES_ADDR, ctrl->samples);
-    outl(AUDIO_INIT_ADDR, 1);
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat)
@@ -59,6 +59,10 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         memcpy(dst, src + first, remain);
     wpos += wlen;
 
+    if(!start) {
+        outl(AUDIO_INIT_ADDR, 1);
+        start = 1;
+    }
     // printf("wpos: %d, wlen: %d\n", wpos, wlen);
     // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
 }
