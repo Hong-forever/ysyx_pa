@@ -42,7 +42,7 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-    if (ctl->buf.start == NULL || ctl->buf.end == NULL || ctl->buf.start >= ctl->buf.end)
+    if (ctl->buf.start == NULL || ctl->buf.end == NULL || ctl->buf.start > ctl->buf.end)
         return;
     uint32_t wlen_all = (uint32_t)((uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start);
     if (wlen_all == 0) return;
