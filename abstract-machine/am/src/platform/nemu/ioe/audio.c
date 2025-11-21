@@ -45,6 +45,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (ctl->buf.start == NULL)
         return;
     uint32_t wlen_all = ctl->buf.end - ctl->buf.start;
+    printf("Audio play wlen_all: %x\n", wlen_all);
     uint32_t wlen = wlen_all > 4096 ? 4096 : wlen_all;
     while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
         // printf("Audio wait... times: %d\r", ++times);
