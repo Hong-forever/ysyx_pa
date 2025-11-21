@@ -41,7 +41,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len){
   if( (sbuf_pos + len) > sbuf_size ){
     SDL_MixAudio(stream, sbuf + sbuf_pos, sbuf_size - sbuf_pos , SDL_MIX_MAXVOLUME);
     SDL_MixAudio(stream +  (sbuf_size - sbuf_pos), 
-                    sbuf +  (sbuf_size - sbuf_pos), 
+                    sbuf, 
                     len - (sbuf_size - sbuf_pos), 
                     SDL_MIX_MAXVOLUME);
   }
