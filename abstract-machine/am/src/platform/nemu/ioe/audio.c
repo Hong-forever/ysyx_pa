@@ -59,10 +59,10 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         memcpy(dst, src + first, remain);
     wpos += wlen;
 
-    if(!start) {
+    if(start == 2) {
         outl(AUDIO_INIT_ADDR, 1);
-        start = 1;
     }
+    start++;
     // printf("wpos: %d, wlen: %d\n", wpos, wlen);
     // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
 }

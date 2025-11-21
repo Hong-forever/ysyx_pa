@@ -92,7 +92,7 @@ static void audio_start()
 static void audio_io_handler(uint32_t offset, int len, bool is_write)
 {
     uint32_t idx = offset >> 2;
-    if (idx == reg_init && audio_base[reg_init])
+    if (idx == reg_init && audio_base[reg_init] == 1)
         audio_start();
 }
 
