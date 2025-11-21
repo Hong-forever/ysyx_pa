@@ -42,30 +42,38 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-    if (ctl->buf.start == NULL)
+    if (ctl->buf.start == NULL || ctl->buf.end == NULL || ctl->buf.start >= ctl->buf.end)
         return;
-    uint32_t wlen_all = ctl->buf.end - ctl->buf.start;
-    uint32_t wlen = wlen_all > 4096 ? 4096 : wlen_all;
-    while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
-        // printf("Audio wait... times: %d\r", ++times);
-    };
-
+    uint32_t wlen_all = (uint32_t)((uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start);
+    if (wlen_all == 0) return;
     uint8_t *src = (uint8_t *)ctl->buf.start;
-    printf("src addr: %p, wlen: %d, wpos: %d\n", src, wlen, wpos);
     uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
+    uint8_t *current_src = src;
 
-    uint32_t first = sbuf_size - wpos;
-    if (first > wlen) first = wlen;
-    for (int i = 0; i < first; i++) {
-        dst[wpos + i] = src[i];
-    }
-    uint32_t remain = wlen - first;
-    if (remain > 0)
-        for (int i = 0; i < remain; i++) {
-            dst[i] = src[first + i];
+    while (wlen_all > 0) {
+        uint32_t wlen = (wlen_all > 4096) ? 4096 : wlen_all;
+        while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
+            // 等待缓冲区空间
+        };
+
+        printf("src addr: %p, wlen: %d, wpos: %d\n", current_src, wlen, wpos);
+
+        uint32_t first = sbuf_size - wpos;
+        if (first > wlen) first = wlen;
+        for (int i = 0; i < first; i++) {
+            dst[wpos + i] = current_src[i];
         }
-    wpos = (wpos + wlen) % sbuf_size;
+        uint32_t remain = wlen - first;
+        if (remain > 0)
+            for (int i = 0; i < remain; i++) {
+                dst[i] = current_src[first + i];
+            }
+        wpos = (wpos + wlen) % sbuf_size;
 
-    uint32_t current_count = inl(AUDIO_COUNT_ADDR);
-    outl(AUDIO_COUNT_ADDR, current_count + wlen);
+        uint32_t current_count = inl(AUDIO_COUNT_ADDR);
+        outl(AUDIO_COUNT_ADDR, current_count + wlen);
+
+        current_src += wlen;
+        wlen_all -= wlen;
+    }
 }
