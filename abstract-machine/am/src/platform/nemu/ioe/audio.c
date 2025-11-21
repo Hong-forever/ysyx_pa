@@ -43,6 +43,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (ctl->buf.start == NULL)
         return;
     uint32_t wlen = ctl->buf.end - ctl->buf.start;
+    printf("Audio play wlen: %x, sbuf_size: %x\n", wlen, sbuf_size);
     while(inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size);
 
     // assert(wpos+wlen <= sbuf_size);
@@ -59,7 +60,6 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (remain)
         memcpy(dst, src + first, remain);
     wpos += wlen;
-    printf("Audio play after add: %x, wpos: %x\n", wlen, wpos);
 
     if(!start) {
         outl(AUDIO_INIT_ADDR, 1);
