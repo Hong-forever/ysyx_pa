@@ -48,7 +48,9 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     // assert(wpos+wlen <= sbuf_size);
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
+    printf("Audio play wlen: %d, wpos: %d\n", wlen, wpos);
     wpos = wpos % sbuf_size;
+    printf("Audio play 2 wlen: %d, wpos: %d\n", wlen, wpos);
     uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
 
     uint32_t first = sbuf_size - wpos;
