@@ -36,6 +36,7 @@ static uint32_t rpos = 0; // 环形读指针
 
 static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
 {
+    SDL_memset(stream, 0, len);
     uint32_t remain_total = wpos < rpos ? wpos + CONFIG_SB_SIZE - rpos : wpos - rpos;
     int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
 

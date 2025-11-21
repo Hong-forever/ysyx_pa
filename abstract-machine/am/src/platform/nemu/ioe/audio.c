@@ -45,29 +45,26 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     if (ctl->buf.start == NULL)
         return;
     uint32_t wlen_all = ctl->buf.end - ctl->buf.start;
-    uint32_t wlen = wlen_all > sbuf_size ? sbuf_size: wlen_all;
-        printf("wlen_all: %x, wlen: %x\n", wlen_all, wlen);
-        while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
-            printf("Audio wait... times: %d\r", ++times);
-        };
+    uint32_t wlen = wlen_all > sbuf_size ? sbuf_size : wlen_all;
+    while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
+        printf("Audio wait... times: %d\r", ++times);
+    };
 
-        uint8_t *src = (uint8_t *)ctl->buf.start;
-        // printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
-        uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
+    uint8_t *src = (uint8_t *)ctl->buf.start;
+    // printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
+    uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
 
-        uint32_t first = sbuf_size - wpos;
-        if (first > wlen)
-            first = wlen;
-        memcpy(dst + wpos, src, first);
-        uint32_t remain = wlen - first;
-        if (remain)
-            memcpy(dst, src + first, remain);
-        wpos = (wpos + wlen) % sbuf_size;
+    uint32_t first = sbuf_size - wpos;
+    if (first > wlen)
+        first = wlen;
+    memcpy(dst + wpos, src, first);
+    uint32_t remain = wlen - first;
+    if (remain)
+        memcpy(dst, src + first, remain);
+    wpos = (wpos + wlen) % sbuf_size;
 
-        uint32_t current_count = inl(AUDIO_COUNT_ADDR);
-        outl(AUDIO_COUNT_ADDR, current_count + wlen);
+    uint32_t current_count = inl(AUDIO_COUNT_ADDR);
+    outl(AUDIO_COUNT_ADDR, current_count + wlen);
 
-        wlen_all -= wlen;
-        // printf("wpos: %d, wlen: %d\n", wpos, wlen);
-        // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
+    wlen_all -= wlen;
 }
