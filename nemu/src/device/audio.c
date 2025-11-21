@@ -36,7 +36,6 @@ static uint32_t rpos = 0; // 环形读指针
 
 static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
 {
-    SDL_memset(stream, 0, len);
     uint32_t remain_total = wpos < rpos ? wpos + CONFIG_SB_SIZE - rpos : wpos - rpos;
     int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
 
@@ -99,6 +98,7 @@ static void sbuf_io_handler(uint32_t offset, int len, bool is_write)
     if (is_write) {
         uint32_t end_off = offset + len;
         wpos = end_off; // 以最大写偏移作为长度
+        audio_base[reg_count] = wpos;
         // printf("write pos%%10000: %d\n", wpos%10000);
     }
 }
