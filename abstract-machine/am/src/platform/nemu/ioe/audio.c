@@ -47,7 +47,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     uintptr_t start = (uintptr_t)ctl->buf.start;
     uintptr_t end = (uintptr_t)ctl->buf.end;
 
-    if(start < 0x80000000 ||  end < 0x80000000 || start > 0x87ffffff || end > 0x87ffffff) {
+    if(start < 0x80000000 ||  end < 0x80000000 || start >=0x87ffffff || end >= 0x87ffffff) {
         return;
     }
 
