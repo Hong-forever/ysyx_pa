@@ -46,7 +46,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         return;
     uint32_t wlen_all = ctl->buf.end - ctl->buf.start;
     uint32_t wlen = wlen_all > sbuf_size ? sbuf_size: wlen_all;
-    printf("\n");
+    printf("wlen_all: %x, wlen: %x\n", wlen_all, wlen);
     while (wlen_all) {
         printf("Audio play wlen: %x, sbuf_size: %x\n", wlen, sbuf_size);
         printf("aaa\n");
