@@ -38,7 +38,7 @@ LoopHistory_t loop_history[LOOP_HISTORY_SIZE];
 void device_update();
 
 
-#if ITRACE_COND
+#ifdef CONFIG_ITRACE_COND
 static char iringbuf[IRINGBUF_LINE][IRINGBUF_SIZE];
 static int nr_inst = 0;
 
@@ -173,7 +173,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
-    iring_trace_printf();
+    IFDEF(CONFIG_ITRACE, iring_trace_printf());
     isa_reg_display();
     statistic();
 }
