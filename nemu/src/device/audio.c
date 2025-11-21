@@ -54,6 +54,7 @@ static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
         off += chunk;
         left -= chunk;
     }
+    printf("wpos: %d rpos: %d to_copy: %d len:%d\n", wpos, rpos, to_copy, len);
     // 不足填静音
     if (to_copy < len) {
         memset(stream + to_copy, 0, len - to_copy);

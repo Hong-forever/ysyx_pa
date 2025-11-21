@@ -59,6 +59,6 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
         memcpy(dst, src + first, remain);
     wpos += wlen;
 
-    printf("wpos: %d, wlen: %d\n", wpos, wlen);
-    printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
+    // printf("wpos: %d, wlen: %d\n", wpos, wlen);
+    // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
 }
