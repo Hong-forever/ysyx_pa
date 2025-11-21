@@ -42,18 +42,21 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-    if (ctl->buf.start == NULL || ctl->buf.end == NULL || ctl->buf.start > ctl->buf.end)
+    if (ctl->buf.start == NULL || ctl->buf.end == NULL)
         return;
-    uint32_t wlen_all = (uint32_t)((uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start);
+    uintptr_t start = (uintptr_t)ctl->buf.start;
+    uintptr_t end = (uintptr_t)ctl->buf.end;
+    if (start >= end || start < 0x80000000 || end > 0xC0000000) // 假设 NEMU 内存范围，栈/堆高地址；调整为实际
+        return;
+    uint32_t wlen_all = (uint32_t)(end - start);
     if (wlen_all == 0) return;
-    printf("Audio play wlen_all: %x\n", wlen_all);
+    printf("Audio play wlen_all: %x, src: %p\n", wlen_all, ctl->buf.start);
     uint32_t wlen = (wlen_all > 4096) ? 4096 : wlen_all;
     while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
         // 等待缓冲区空间
     };
 
     uint8_t *src = (uint8_t *)ctl->buf.start;
-    printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
     uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
 
     uint32_t first = sbuf_size - wpos;
