@@ -11,7 +11,7 @@
 
 static uint32_t sbuf_size = 0;
 static uint32_t wpos = 0;
-static uint32_t start = 0;
+static uint32_t start = 0, times = 0;
 
 
 void __am_audio_init()
@@ -47,7 +47,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
     while (wlen_all) {
         // printf("Audio play wlen: %x, sbuf_size: %x\n", wlen, sbuf_size);
         while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
-            printf("Audio wait...\n");
+            printf("Audio wait... times: %d\r", ++times);
         };
 
         // assert(wpos+wlen <= sbuf_size);
