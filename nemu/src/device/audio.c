@@ -28,47 +28,79 @@ enum {
     nr_reg
 };
 
-static uint32_t *audio_base = NULL;
 static uint8_t *sbuf = NULL;
-static uint32_t sbuf_pos = 0; //这一句非常重要
+static uint32_t *audio_base = NULL;
 
-void sdl_audio_callback(void *userdata, uint8_t *stream, int len){
-  SDL_memset(stream, 0, len);
-  uint32_t used_cnt = audio_base[reg_count];
-  len = len > used_cnt ? used_cnt : len;
-  
-  uint32_t sbuf_size = audio_base[reg_sbuf_size];
-  if( (sbuf_pos + len) > sbuf_size ){
-    SDL_MixAudio(stream, sbuf + sbuf_pos, sbuf_size - sbuf_pos , SDL_MIX_MAXVOLUME);
-    SDL_MixAudio(stream +  (sbuf_size - sbuf_pos), 
-                    sbuf, 
-                    len - (sbuf_size - sbuf_pos), 
-                    SDL_MIX_MAXVOLUME);
-  }
-  else 
-    SDL_MixAudio(stream, sbuf + sbuf_pos, len , SDL_MIX_MAXVOLUME);
-  sbuf_pos = (sbuf_pos + len) % sbuf_size;
-  audio_base[reg_count] -= len;
+static uint32_t wpos = 0; // 已播放字节
+static uint32_t rpos = 0; // 环形读指针
+
+static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
+{
+    uint32_t remain_total = wpos < rpos ? wpos + CONFIG_SB_SIZE - rpos : wpos - rpos;
+    int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
+
+    // 拷贝有效数据
+    int left = to_copy, off = 0;
+    // printf("Audio callback len: %d, to_copy: %d, wpos: %d, rpos: %d\n", len, to_copy, wpos, rpos);
+
+    while (left) {
+        int chunk = CONFIG_SB_SIZE - rpos;
+        if (chunk > left)
+            chunk = left;
+        memcpy(stream + off, sbuf + rpos, chunk);
+        rpos = (rpos + chunk) % CONFIG_SB_SIZE;
+        off += chunk;
+        left -= chunk;
+    }
+    // printf("wpos: %d rpos: %d to_copy: %d len:%d\n", wpos, rpos, to_copy, len);
+    // 不足填静音
+    if (to_copy < len) {
+        memset(stream + to_copy, 0, len - to_copy);
+        rpos += (len - to_copy) % CONFIG_SB_SIZE;
+
+        audio_base[reg_count] = 0;
+        return ;
+    }
+
+    audio_base[reg_count] = remain_total - len;
+
+    // if (played >= produced) {
+    // 播放结束后暂停音频线程
+    // SDL_PauseAudio(1);
+    // SDL_CloseAudio();
+    // SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    // }
 }
 
-void init_sound() {
-  SDL_AudioSpec s = {};
-  s.format = AUDIO_S16SYS;  // 假设系统中音频数据的格式总是使用16位有符号数来表示
-  s.userdata = NULL;        // 不使用
-  s.freq = audio_base[reg_freq];
-  s.channels = audio_base[reg_channels];
-  s.samples = audio_base[reg_samples];
-  s.callback = sdl_audio_callback;
-  SDL_InitSubSystem(SDL_INIT_AUDIO);
-  SDL_OpenAudio(&s, NULL);
-  SDL_PauseAudio(0);       //播放，可以执行音频子系统的回调函数
+static void audio_start()
+{
+    SDL_AudioSpec want;
+    memset(&want, 0, sizeof(want));
+    want.freq = audio_base[reg_freq];
+    want.channels = audio_base[reg_channels];
+    want.samples = audio_base[reg_samples];
+    want.format = AUDIO_S16SYS;
+    want.callback = sdl_audio_callback;
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) == 0 && SDL_OpenAudio(&want, NULL) == 0) {
+        SDL_PauseAudio(0);
+    }
 }
 
-static void audio_io_handler(uint32_t offset, int len, bool is_write) {
-  if(audio_base[reg_init]==1){
-    init_sound();
-    audio_base[reg_init] = 0;
-  }
+static void audio_io_handler(uint32_t offset, int len, bool is_write)
+{
+    uint32_t idx = offset >> 2;
+    if (idx == reg_init && audio_base[reg_init] == 1)
+        audio_start();
+}
+
+static void sbuf_io_handler(uint32_t offset, int len, bool is_write)
+{
+    if (is_write) {
+        uint32_t end_off = offset + len;
+        wpos = end_off; // 以最大写偏移作为长度
+        audio_base[reg_count] = wpos;
+        // printf("write pos%%10000: %d\n", wpos%10000);
+    }
 }
 
 void init_audio()
@@ -86,5 +118,5 @@ void init_audio()
     audio_base[reg_count] = 0;
 
     sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
-    add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
+    add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, sbuf_io_handler);
 }

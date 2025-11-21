@@ -9,16 +9,22 @@
 #define AUDIO_INIT_ADDR (AUDIO_ADDR + 0x10)
 #define AUDIO_COUNT_ADDR (AUDIO_ADDR + 0x14)
 
-static uint32_t sbuf_pos = 0;
+static uint32_t sbuf_size = 0;
+static uint32_t wpos = 0;
+static uint32_t start = 0, times = 0;
+
 
 void __am_audio_init()
 {
+    sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+    wpos = 0;
 }
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
     // cfg->present = (sbuf_size != 0);
-    cfg->present = true;
+    cfg->present = 0;
+    cfg->bufsize = sbuf_size;
 }
 
 void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl)
@@ -36,16 +42,38 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat)
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl)
 {
-  uint8_t *audio_data = (ctl->buf).start;
-  uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
-  //uint32_t cnt = inl(AUDIO_COUNT_ADDR);
-  uint32_t len = (ctl->buf).end - (ctl->buf).start;
-  
+    if (ctl->buf.start == NULL)
+        return;
+    uint32_t wlen_all = ctl->buf.end - ctl->buf.start;
+    uint32_t wlen = wlen_all > sbuf_size/2 ? sbuf_size/2: wlen_all;
+    printf("\n");
+    while (wlen_all) {
+        // printf("Audio play wlen: %x, sbuf_size: %x\n", wlen, sbuf_size);
+        while (inl(AUDIO_COUNT_ADDR) + wlen > sbuf_size) {
+            printf("Audio wait... times: %d\r", ++times);
+        };
 
-  uint8_t *ab = (uint8_t *)(uintptr_t)AUDIO_SBUF_ADDR;  //参考GPU部分
-  for(int i = 0; i < len; i++){
-    ab[sbuf_pos] = audio_data[i];
-    sbuf_pos = (sbuf_pos + 1) % sbuf_size;  
-  }
-  outl(AUDIO_COUNT_ADDR, inl(AUDIO_COUNT_ADDR) + len);
+        // assert(wpos+wlen <= sbuf_size);
+
+        uint8_t *src = (uint8_t *)ctl->buf.start;
+        wpos = wpos % sbuf_size;
+        // printf("Audio play 2 wlen: %x, wpos: %x\n", wlen, wpos);
+        uint8_t *dst = (uint8_t *)AUDIO_SBUF_ADDR;
+
+        uint32_t first = sbuf_size - wpos;
+        if (first > wlen)
+            first = wlen;
+        memcpy(dst + wpos, src, first);
+        uint32_t remain = wlen - first;
+        if (remain)
+            memcpy(dst, src + first, remain);
+        wpos += wlen;
+
+        if (start < 1)
+            start++;
+
+        wlen_all -= wlen;
+        // printf("wpos: %d, wlen: %d\n", wpos, wlen);
+        // printf("start addr: %p, end addr: %p\n", ctl->buf.start, ctl->buf.end);
+    }
 }
