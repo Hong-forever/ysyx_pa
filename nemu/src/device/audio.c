@@ -36,14 +36,12 @@ static uint32_t rpos = 0; // 环形读指针
 
 static void sdl_audio_callback(void *ud, uint8_t *stream, int len)
 {
-    if (audio_base[reg_count] == 0)
-        return;
     uint32_t remain_total = wpos < rpos ? wpos + CONFIG_SB_SIZE - rpos : wpos - rpos;
     int to_copy = (remain_total < (uint32_t)len) ? (int)remain_total : len;
 
     // 拷贝有效数据
     int left = to_copy, off = 0;
-    // printf("Audio callback len: %d, to_copy: %d, rpos: %d\n", len, to_copy, rpos);
+    printf("Audio callback len: %d, to_copy: %d, rpos: %d\n", len, to_copy, rpos);
 
     while (left) {
         int chunk = CONFIG_SB_SIZE - rpos;
