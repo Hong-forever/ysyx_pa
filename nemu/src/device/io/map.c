@@ -54,7 +54,7 @@ void init_map() {
 
 #ifdef CONFIG_DTRACE
 void dtrace(const char *device_name, const char *dir, paddr_t addr) {
-    printf("Dtrace: Access device@%s for addr 0x%08llu by %s\n", device_name, addr, dir);
+    printf("Dtrace: Access device@%s for addr 0x%08u by %s\n", device_name, addr, dir);
 }
 #endif
 
