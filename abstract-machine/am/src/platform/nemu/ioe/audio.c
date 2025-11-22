@@ -15,13 +15,12 @@ static uint32_t wpos = 0;
 
 void __am_audio_init()
 {
-    sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
-    wpos = 0;
 }
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
     // cfg->present = (sbuf_size != 0);
+    sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
     cfg->present = false;
     cfg->bufsize = sbuf_size;
 }
