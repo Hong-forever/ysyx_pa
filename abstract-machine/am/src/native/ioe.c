@@ -69,7 +69,7 @@ void __am_ioe_init() {
   __am_gpu_init();
   __am_input_init();
   __am_uart_init();
-  __am_audio_init();
+  // __am_audio_init();
   __am_disk_init();
   ioe_init_done = true;
 }
