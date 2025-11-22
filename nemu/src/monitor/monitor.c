@@ -25,7 +25,7 @@ void init_device();
 void init_sdb();
 void init_disasm();
 
-static void welcome()
+/* static void welcome()
 {
     Log("Trace: %s", MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
     IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
@@ -35,7 +35,7 @@ static void welcome()
     printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
     printf("For help, type \"help\"\n");
     Log("Exercise: Please remove me in the source code and compile NEMU again.");
-}
+} */
 
 #ifndef CONFIG_TARGET_AM
 #include <getopt.h>
@@ -152,7 +152,7 @@ void init_monitor(int argc, char *argv[])
     IFDEF(CONFIG_ITRACE, init_disasm());
 
     /* Display welcome message. */
-    welcome();
+    // welcome();
 }
 #else // CONFIG_TARGET_AM
 static long load_img()
@@ -171,6 +171,6 @@ void am_init_monitor()
     init_isa();
     load_img();
     IFDEF(CONFIG_DEVICE, init_device());
-    welcome();
+    // welcome();
 }
 #endif
