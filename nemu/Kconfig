@@ -165,7 +165,7 @@ config FTRACE
 
 config DTRACE
   bool "Enable device trace"
-  default y 
+  default n 
 
 
 config DIFFTEST
