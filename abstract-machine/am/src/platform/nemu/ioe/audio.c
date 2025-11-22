@@ -22,7 +22,7 @@ void __am_audio_init()
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg)
 {
     // cfg->present = (sbuf_size != 0);
-    cfg->present = true;
+    cfg->present = false;
     cfg->bufsize = sbuf_size;
 }
 
