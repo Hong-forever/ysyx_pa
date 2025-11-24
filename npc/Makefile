@@ -1,6 +1,6 @@
 TOPNAME = top
 NXDC_FILES = constr/top.nxdc
-INC_PATH += $(sort $(dir (shell find $(abspath ./csrc) -name "*.h")))
+INC_PATH += $(sort $(dir $(shell find $(abspath ./csrc) -name "*.h")))
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
