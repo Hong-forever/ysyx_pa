@@ -4,11 +4,6 @@ use_nvbrd ?= 0
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
 
-# constraint file
-SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
-$(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
-
 # rules for NVBoard
 include $(NVBOARD_HOME)/scripts/nvboard.mk
 
@@ -36,6 +31,13 @@ sim: $(NPC_EXEC)
 	@$^
 
 $(shell mkdir -p $(BUILD_DIR))
+
+ifeq ($(use_nvbrd), 1)
+# constraint file
+SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
+$(SRC_AUTO_BIND): $(NXDC_FILES)
+	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+endif
 
 # project source
 VSRCS ?= $(shell find $(abspath ./vsrc) -name "*.v")
