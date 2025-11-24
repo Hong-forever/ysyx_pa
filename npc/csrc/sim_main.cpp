@@ -43,7 +43,7 @@ void cpu_exec(uint64_t n)
 
 int main(int argc, char *argv[])
 {
-    IFDEF(DCONFIG_USE_NVBOARD, nvboard_bind_all_pins(&dut); nvboard_init());
+    IFDEF(CONFIG_USE_NVBOARD, nvboard_bind_all_pins(&dut); nvboard_init());
 
     init_monitor(argc, argv);
 
