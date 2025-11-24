@@ -1,5 +1,5 @@
 
-use_nvbrd ?= 1
+use_nvbrd ?= 0
 
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
@@ -47,9 +47,15 @@ endif
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
+
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -DTOP_NAME="V$(TOPNAME)"
 CXXFLAGS += -g
+CXXFLAGS += -DTOP_NAME="V$(TOPNAME)" 
+
+ifeq ($(use_nvbrd), 1)
+CXXFLAGS += -DCONFIG_USE_NVBOARD=1
+endif
+
 LDFLAGS += -lreadline
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
