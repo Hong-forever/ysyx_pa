@@ -39,7 +39,7 @@ void cpu_exec(uint64_t n)
     while (n-- > 0) {
         IFDEF(CONFIG_USE_NVBOARD, nvboard_update());
         single_cycle();
-        printf("NPC Cycle = %lu\n", i++);
+        printf("NPC Cycle = %u\n", i++);
         if (trap_flag != 0) break;
     }
 }
