@@ -2,7 +2,7 @@
 #define __COMMON_H__
 
 #include <Vtop.h>
-#include "macro.h"
+#include <nvboard.h>
 
 #define COLOR_RED "\033[1;31m"
 #define COLOR_GREEN "\033[1;32m"

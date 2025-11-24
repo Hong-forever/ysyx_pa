@@ -2,13 +2,10 @@
 
 static TOP_NAME dut;
 
-#ifdef CONFIG_USE_NVBOARD
-#include <nvboard.h>
 void nvboard_bind_all_pins(TOP_NAME *top);
-#endif
-
 void init_monoitor(int argc, char *argv[]);
 void engine_start();
+
 
 int trap_flag = 0;
 extern "C" void trap(int reg_data)
@@ -36,14 +33,15 @@ static void reset(int n)
 void cpu_exec(uint64_t n)
 {
     while (n-- > 0) {
-        IFDEF(CONFIG_USE_NVBOARD, nvboard_update());
+        nvboard_update();
         single_cycle();
     }
 }
 
 int main(int argc, char *argv[])
 {
-    IFDEF(CONFIG_USE_NVBOARD, nvboard_bind_all_pins(&dut); nvboard_init());
+    nvboard_bind_all_pins(&dut);
+    nvboard_init();
 
     init_monitor(argc, argv);
 
