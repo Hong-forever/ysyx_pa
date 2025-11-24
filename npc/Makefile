@@ -1,5 +1,21 @@
-TOPNAME = top
+
+use_nvbrd ?= 1
+
+ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
+
+# constraint file
+SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
+$(SRC_AUTO_BIND): $(NXDC_FILES)
+	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+
+# rules for NVBoard
+include $(NVBOARD_HOME)/scripts/nvboard.mk
+
+endif
+
+TOPNAME = top
+
 INC_PATH += $(sort $(dir $(shell find $(abspath ./csrc) -name "*.h")))
 
 VERILATOR = verilator
@@ -21,22 +37,18 @@ sim: $(NPC_EXEC)
 
 $(shell mkdir -p $(BUILD_DIR))
 
-# constraint file
-SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
-$(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
-
 # project source
 VSRCS ?= $(shell find $(abspath ./vsrc) -name "*.v")
 CSRCS ?= $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-CSRCS += $(SRC_AUTO_BIND)
 
-# rules for NVBoard
-include $(NVBOARD_HOME)/scripts/nvboard.mk
+ifeq ($(use_nvbrd), 1)
+CSRCS += $(SRC_AUTO_BIND)
+endif
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+CXXFLAGS += $(INCFLAGS) 
+CXXFLAGS += -DTOP_NAME="V$(TOPNAME)"
 CXXFLAGS += -g
 LDFLAGS += -lreadline
 
