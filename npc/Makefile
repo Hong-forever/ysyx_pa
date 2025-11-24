@@ -1,5 +1,5 @@
 
-use_nvbrd ?= 0
+use_nvbrd ?= 1
 
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
