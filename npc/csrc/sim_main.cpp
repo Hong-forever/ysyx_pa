@@ -2,8 +2,6 @@
 
 static TOP_NAME dut;
 
-#define CONFIG_USE_NVBOARD 1
-
 #ifdef CONFIG_USE_NVBOARD
 #include <nvboard.h>
 void nvboard_bind_all_pins(TOP_NAME *top);
@@ -45,7 +43,7 @@ void cpu_exec(uint64_t n)
 
 int main(int argc, char *argv[])
 {
-    IFDEF(CONFIG_USE_NVBOARD, nvboard_bind_all_pins(&dut); nvboard_init());
+    IFDEF(DCONFIG_USE_NVBOARD, nvboard_bind_all_pins(&dut); nvboard_init());
 
     init_monitor(argc, argv);
 
