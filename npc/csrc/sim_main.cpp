@@ -35,9 +35,12 @@ static void reset(int n)
 
 void cpu_exec(uint64_t n)
 {
+    int i = 0;
     while (n-- > 0) {
         IFDEF(CONFIG_USE_NVBOARD, nvboard_update());
         single_cycle();
+        printf("NPC Cycle = %lu\n", i++);
+        if (trap_flag != 0) break;
     }
 }
 
