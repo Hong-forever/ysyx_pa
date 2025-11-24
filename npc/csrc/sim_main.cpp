@@ -3,6 +3,9 @@
 static TOP_NAME dut;
 
 void nvboard_bind_all_pins(TOP_NAME *top);
+void init_monoitor(int argc, char *argv[]);
+void engine_start();
+
 
 int trap_flag = 0;
 extern "C" void trap(int reg_data)
@@ -27,6 +30,14 @@ static void reset(int n)
     dut.rst = 0;
 }
 
+void cpu_exec(uint64_t n)
+{
+    while (n-- > 0) {
+        nvboard_update();
+        single_cycle();
+    }
+}
+
 int main(int argc, char *argv[])
 {
     nvboard_bind_all_pins(&dut);
@@ -36,19 +47,17 @@ int main(int argc, char *argv[])
 
     reset(10);
 
-    while (1) {
-        nvboard_update();
-        single_cycle();
-        if (trap_flag == 1) {
-            printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
-            printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
-            printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
-            return 0;
-        } else if (trap_flag == 2) {
-            printf(COLOR_RED "[=========================================================]\n" COLOR_END);
-            printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END);
-            printf(COLOR_RED "[=========================================================]\n" COLOR_END);
-            return 0;
-        }
+    engine_start();
+
+    if (trap_flag == 1) {
+        printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
+        printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
+        printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
+        return 0;
+    } else if (trap_flag == 2) {
+        printf(COLOR_RED "[=========================================================]\n" COLOR_END);
+        printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END);
+        printf(COLOR_RED "[=========================================================]\n" COLOR_END);
+        return 0;
     }
 }

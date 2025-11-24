@@ -10,7 +10,6 @@
 
 typedef uint32_t paddr_t;
 
-extern paddr_t *guest_to_host(paddr_t paddr);
 
 extern void init_monitor(int argc, char *argv[]);
 #endif

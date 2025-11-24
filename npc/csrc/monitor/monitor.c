@@ -3,6 +3,8 @@
 
 static char *img_file = NULL;
 
+paddr_t *guest_to_host(paddr_t paddr);
+
 static int parse_args(int argc, char *argv[]) {
     const struct option table[] = {
         {"batch"        , no_argument       , NULL, 'b'},
