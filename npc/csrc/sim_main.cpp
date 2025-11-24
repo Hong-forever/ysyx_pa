@@ -2,6 +2,8 @@
 
 static TOP_NAME dut;
 
+#define CONFIG_USE_NVBOARD 1
+
 #ifdef CONFIG_USE_NVBOARD
 #include <nvboard.h>
 void nvboard_bind_all_pins(TOP_NAME *top);
