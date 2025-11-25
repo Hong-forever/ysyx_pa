@@ -36,14 +36,14 @@ void reset(int n)
     dut.rst = 0;
 }
 
-#define CONFIG_WATCHPOINT
+#define CONFIG_WATCHPOINT 1
 void check_watchpoint();
 
 static void exec_once()
 {
     single_cycle();
     // trace_and_difftest(&s, cpu.pc);
-    IFDEF(CONFIG_WATCHPOINT, check_watchpoint());
+    IFDEF(CONFIG_WATCHPOINT, check_watchpoint(); printf("check watchpoint\n"););
 }
 
 static void execute(uint64_t n)
