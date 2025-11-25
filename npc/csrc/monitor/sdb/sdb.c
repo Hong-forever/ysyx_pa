@@ -16,7 +16,7 @@ static int cmd_q(char *args);
 static int cmd_si(char *args);
 static int cmd_info(char *args);
 static int cmd_x(char *args);
-// static int cmd_p(char *args);
+static int cmd_p(char *args);
 // static int cmd_w(char *args);
 // static int cmd_d(char *args);
 
@@ -33,7 +33,7 @@ static struct {
     { "si", "Execute inst step", cmd_si },
     { "info", "Print register or monitoring point information", cmd_info },
     { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
-    // { "p", "Find the value of the expression EXPR", cmd_p },
+    { "p", "Find the value of the expression EXPR", cmd_p },
     // { "w", "Stop if EXPR changes", cmd_w },
     // { "d", "Delete the monitor point with serial number N", cmd_d },
 };
@@ -177,7 +177,7 @@ static int cmd_x(char *args)
     }
     return 0;
 }
-/*
+
 static int cmd_p(char *args)
 {
     if (args == NULL) {
@@ -197,7 +197,7 @@ static int cmd_p(char *args)
 
     return success ? 0 : -1;
 }
-
+/*
 static int cmd_w(char *args)
 {
     if (args == NULL) {
