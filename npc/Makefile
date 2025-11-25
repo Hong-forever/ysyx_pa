@@ -24,11 +24,11 @@ BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
-NPC_EXEC := $(BIN) $(IMG)
+NPC_EXEC := $(BIN) $(ARGS) $(IMG)
 
-sim: $(NPC_EXEC)
+sim: 
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$(BIN) $(ARGS) $(IMG)
+	@$(NPC_EXEC)
 
 $(shell mkdir -p $(BUILD_DIR))
 
