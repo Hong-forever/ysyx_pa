@@ -113,10 +113,9 @@ void info_watchpoint() {
         return ;
     }
 
-    printf("NUM        EXPR    VALUE          HIT\n");
     WP *index = head;
     while(index != NULL) {
-        printf("#%-3d       %.20s     0x%08x      %d\n", index->NO, index->expr, index->new_value, index->hit_count);
+        printf("NUM: #%-3d EXPR: %.20s VALUE: 0x%08x HIT: %d\n", index->NO, index->expr, index->new_value, index->hit_count);
         index = index->next;
     }
     return ;
