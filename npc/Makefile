@@ -25,7 +25,10 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
 NPC_EXEC := $(BIN) $(IMG)
+<<<<<<< HEAD
 
+=======
+>>>>>>> pa2
 sim: $(NPC_EXEC)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$(BIN) $(ARGS) $(IMG)
