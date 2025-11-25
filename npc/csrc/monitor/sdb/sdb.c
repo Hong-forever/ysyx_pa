@@ -4,6 +4,9 @@
 void cpu_exec(uint64_t n);
 uint32_t EmuMemRead(paddr_t raddr);
 word_t eval_expr(char *e, bool *success);
+void reg_display();
+
+
 static bool is_batch_mode = false;
 
 static int cmd_help(char *args);
@@ -135,7 +138,7 @@ static int cmd_info(char *args)
         } else {
             switch (cmd_char) {
             case 'r':
-                // isa_reg_display();
+                reg_display();
                 break;
             case 'w':
                 // info_watchpoints();
