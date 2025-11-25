@@ -57,6 +57,13 @@ module regfile
         end
     end
 
+    
+    import "DPI-C" function void reg_value(input int pc, input int gpr[]);
+
+    always @(*) begin
+        reg_value(I_inst_addr, regs);
+    end
+
 
     //for debug
     wire [`RegDataBus] ra_x1   = regs[1];

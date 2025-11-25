@@ -128,6 +128,8 @@ static bool make_token(char *e)
 }
 
 uint32_t EmuMemRead(paddr_t raddr);
+word_t reg_str2val(const char *s, bool *success);
+
 
 static word_t eval_top_term(bool *success);
 static word_t eval_and_term(bool *success);
@@ -343,7 +345,7 @@ static word_t eval_factor(bool *success)
         }
         case TK_REG: {
             token_idx++;
-            // result = isa_reg_str2val(token->str, success);
+            result = reg_str2val(token->str, success);
             break;
         }
         case '-': {
