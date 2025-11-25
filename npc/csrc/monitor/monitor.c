@@ -6,6 +6,7 @@ static char *img_file = NULL;
 
 void sdb_set_batch_mode();
 paddr_t *guest_to_host(paddr_t paddr);
+void init_sdb();
 
 static int parse_args(int argc, char *argv[]) {
     const struct option table[] = {
@@ -80,7 +81,7 @@ void init_monitor(int argc, char *argv[]) {
 
     // init_difftest(diff_so_file, img_size, difftest_port);
 
-    // init_sdb();
+    init_sdb();
 
     // IFDEF(CONFIG_ITRACE, init_disasm());
 

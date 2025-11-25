@@ -5,6 +5,7 @@ void cpu_exec(uint64_t n);
 uint32_t EmuMemRead(paddr_t raddr);
 word_t eval_expr(char *e, bool *success);
 void reg_display();
+void init_regex();
 
 
 static bool is_batch_mode = false;
@@ -276,4 +277,13 @@ void sdb_mainloop()
         }
         if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
     }
+}
+
+void init_sdb()
+{
+    /* Compile the regular expressions. */
+    init_regex();
+
+    /* Initialize the watchpoint pool. */
+    // init_wp_pool();
 }
