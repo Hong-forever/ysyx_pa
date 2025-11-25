@@ -43,7 +43,7 @@ static void exec_once()
 {
     single_cycle();
     // trace_and_difftest(&s, cpu.pc);
-    IFDEF(CONFIG_WATCHPOINT, check_watchpoint(); printf("check watchpoint\n"););
+    IFDEF(CONFIG_WATCHPOINT, check_watchpoint());
 }
 
 static void execute(uint64_t n)
