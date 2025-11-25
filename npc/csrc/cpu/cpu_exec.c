@@ -36,7 +36,6 @@ void reset(int n)
     dut.rst = 0;
 }
 
-// #define CONFIG_WATCHPOINT 1
 void check_watchpoint();
 
 static void exec_once()

@@ -1,7 +1,7 @@
 #include "common.h"
 
 void reset(int n);
-void init_monoitor(int argc, char *argv[]);
+void init_monitor(int argc, char *argv[]);
 void engine_start();
 int is_exit_status_bad()
 
