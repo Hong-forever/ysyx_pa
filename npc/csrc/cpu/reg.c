@@ -8,7 +8,7 @@ const char *regs[] = {
 };
 
 int cpu_pc = 0;
-int cpu_gpr[32];
+int cpu_gpr[32] = {0};
 
 extern "C" void reg_value(int pc, int gpr[]) {
     cpu_pc = pc;
