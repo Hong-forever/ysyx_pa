@@ -8,6 +8,7 @@ void reg_display();
 void init_regex();
 void init_wp_pool();
 void set_watchpoint(char *args);
+void info_watchpoint();
 void free_wp(uint32_t N);
 
 
@@ -145,7 +146,7 @@ static int cmd_info(char *args)
                 reg_display();
                 break;
             case 'w':
-                // info_watchpoints();
+                info_watchpoint();
                 break;
             default:
                 printf("Unknown subcommand '%s'\n", arg);
