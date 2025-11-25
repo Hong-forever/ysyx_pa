@@ -31,7 +31,7 @@ static struct {
     { "q", "Exit npc", cmd_q },
     { "si", "Execute inst step", cmd_si },
     { "info", "Print register or monitoring point information", cmd_info },
-    // { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
+    { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
     // { "p", "Find the value of the expression EXPR", cmd_p },
     // { "w", "Stop if EXPR changes", cmd_w },
     // { "d", "Delete the monitor point with serial number N", cmd_d },
