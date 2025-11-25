@@ -3,7 +3,7 @@
 void reset(int n);
 void init_monitor(int argc, char *argv[]);
 void engine_start();
-int is_exit_status_bad()
+int is_exit_status_bad();
 
 IFDEF(CONFIG_USE_NVBOARD, void nvboard());
 
