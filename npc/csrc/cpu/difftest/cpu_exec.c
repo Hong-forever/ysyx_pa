@@ -68,13 +68,9 @@ void cpu_exec(uint64_t n)
     {
         case NPC_END:
             if (npc_state.halt_ret == 1) {
-                printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
-                printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
-                printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
+                printf(COLOR_GREEN "[=>>>] HIT GOOD TRAP at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
             } else if (npc_state.halt_ret == 2) {
-                printf(COLOR_RED "[=========================================================]\n" COLOR_END);
-                printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END);
-                printf(COLOR_RED "[=========================================================]\n" COLOR_END);
+                printf(COLOR_RED "[>>>] HIT BAD TRAP at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
             }
             break;
         // case NPC_QUIT:
