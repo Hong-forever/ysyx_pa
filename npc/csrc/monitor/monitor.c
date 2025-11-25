@@ -18,6 +18,9 @@ static int parse_args(int argc, char *argv[]) {
     };
 
     int o;
+
+
+    
     while( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         switch(o) {
             case 'b': sdb_set_batch_mode(); break;
