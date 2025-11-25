@@ -49,12 +49,32 @@ module regfile
                 I_rs2_raddr == `ZeroReg ? `ZeroWord :
                 (I_rd_we && I_rd_waddr == I_rs2_raddr) ? I_rd_wdata : regs[I_rs2_raddr];
 
-    import "DPI-C" function void trap(input int reg_data);
+    import "DPI-C" function void trap(input int reg_data, input int halt_pc);
 
     always @(*) begin
         if(I_inst == `RV_EBREAK) begin
-            trap(regs[10]);
+            trap(regs[10], I_inst_addr);
         end
+    end
+
+    
+    import "DPI-C" function void reg_value(input int pc, 
+        input int gpr0, input int gpr1, input int gpr2, input int gpr3, 
+        input int gpr4, input int gpr5, input int gpr6, input int gpr7, 
+        input int gpr8, input int gpr9, input int gpr10, input int gpr11, 
+        input int gpr12, input int gpr13, input int gpr14, input int gpr15, 
+        input int gpr16, input int gpr17, input int gpr18, input int gpr19, 
+        input int gpr20, input int gpr21, input int gpr22, input int gpr23,
+        input int gpr24, input int gpr25, input int gpr26, input int gpr27, 
+        input int gpr28, input int gpr29, input int gpr30, input int gpr31);
+
+    always @(*) begin
+        if(I_inst != `ZeroWord)
+            reg_value(I_inst_addr,
+                  regs[0],  regs[1],  regs[2],  regs[3],  regs[4],  regs[5],  regs[6],  regs[7],
+                  regs[8],  regs[9],  regs[10], regs[11], regs[12], regs[13], regs[14], regs[15],
+                  regs[16], regs[17], regs[18], regs[19], regs[20], regs[21], regs[22], regs[23],
+                  regs[24], regs[25], regs[26], regs[27], regs[28], regs[29], regs[30], regs[31]);
     end
 
 

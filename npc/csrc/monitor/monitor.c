@@ -1,9 +1,12 @@
 #include "common.h"
 #include <getopt.h>
+#include "utils.h"
 
 static char *img_file = NULL;
 
+void sdb_set_batch_mode();
 paddr_t *guest_to_host(paddr_t paddr);
+void init_sdb();
 
 static int parse_args(int argc, char *argv[]) {
     const struct option table[] = {
@@ -16,9 +19,10 @@ static int parse_args(int argc, char *argv[]) {
     };
 
     int o;
+    
     while( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         switch(o) {
-            case 'b': /*sdb_set_batch_mode();*/ break;
+            case 'b': sdb_set_batch_mode(); break;
             case 'p': /*scanf(optarg, "%d", &difftest_port);*/ break;
             case 'l': /*log_file = optarg;*/ break;
             case 'd': /*diff_so_file = optarg;*/ break;
@@ -53,11 +57,16 @@ static size_t load_img()
     printf("The image is %s, size = 0x%08lx\n", img_file, size);
 
     fseek(fp, 0, SEEK_SET);
-    int ret = fread(guest_to_host(0), size, 1, fp);
+    int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
     assert(ret == 1);
 
     fclose(fp);
     return size;
+}
+
+static void welcome()
+{
+    printf(COLOR_BLUE "Welcome to NPC!\n" COLOR_END);
 }
 
 void init_monitor(int argc, char *argv[]) {
@@ -72,9 +81,9 @@ void init_monitor(int argc, char *argv[]) {
 
     // init_difftest(diff_so_file, img_size, difftest_port);
 
-    // init_sdb();
+    init_sdb();
 
     // IFDEF(CONFIG_ITRACE, init_disasm());
 
-    printf(COLOR_GREEN "Welcome to NPC!\n" COLOR_END);
+    welcome();
 }

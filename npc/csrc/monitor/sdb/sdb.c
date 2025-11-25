@@ -1,6 +1,17 @@
 #include "sdb.h"
+#include "utils.h"
 
 void cpu_exec(uint64_t n);
+uint32_t EmuMemRead(paddr_t raddr);
+word_t eval_expr(char *e, bool *success);
+void reg_display();
+void init_regex();
+void init_wp_pool();
+void set_watchpoint(char *args);
+void info_watchpoint();
+void free_wp(uint32_t N);
+
+
 static bool is_batch_mode = false;
 
 static int cmd_help(char *args);
@@ -8,12 +19,10 @@ static int cmd_c(char *args);
 static int cmd_q(char *args);
 static int cmd_si(char *args);
 static int cmd_info(char *args);
-/*
 static int cmd_x(char *args);
 static int cmd_p(char *args);
 static int cmd_w(char *args);
 static int cmd_d(char *args);
-*/
 
 #define NR_CMD ARRLEN(cmd_table)
 
@@ -27,10 +36,10 @@ static struct {
     { "q", "Exit npc", cmd_q },
     { "si", "Execute inst step", cmd_si },
     { "info", "Print register or monitoring point information", cmd_info },
-    // { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
-    // { "p", "Find the value of the expression EXPR", cmd_p },
-    // { "w", "Stop if EXPR changes", cmd_w },
-    // { "d", "Delete the monitor point with serial number N", cmd_d },
+    { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
+    { "p", "Find the value of the expression EXPR", cmd_p },
+    { "w", "Stop if EXPR changes", cmd_w },
+    { "d", "Delete the monitor point with serial number N", cmd_d },
 };
 
 static char *rl_gets()
@@ -84,6 +93,7 @@ static int cmd_c(char *args)
 static int cmd_q(char *args)
 {
     // Exit npc
+    npc_state.state = NPC_QUIT;
     return -1;
 }
 
@@ -133,10 +143,10 @@ static int cmd_info(char *args)
         } else {
             switch (cmd_char) {
             case 'r':
-                // isa_reg_display();
+                reg_display();
                 break;
             case 'w':
-                // info_watchpoints();
+                info_watchpoint();
                 break;
             default:
                 printf("Unknown subcommand '%s'\n", arg);
@@ -149,7 +159,6 @@ static int cmd_info(char *args)
     return 0;
 }
 
-/*
 static int cmd_x(char *args)
 {
     char *arg = strtok(args, " ");
@@ -161,12 +170,13 @@ static int cmd_x(char *args)
 
         int n = atoi(arg);
         word_t expr_res = eval_expr(expr_arg, &success);
+        // printf("expr_res: 0x%08x\n", expr_res);
         if(!success) {
             printf("expr error\n");
         }
 
         for(int i=0; i<n; i++) {
-            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, vaddr_read(expr_res+4*i, 4));
+            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, EmuMemRead(expr_res+4*i));
         }
     }
     return 0;
@@ -227,7 +237,6 @@ static int cmd_d(char *args)
     free_wp(n);
     return 0;
 }
-*/
 
 void sdb_set_batch_mode()
 {
@@ -271,4 +280,13 @@ void sdb_mainloop()
         }
         if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
     }
+}
+
+void init_sdb()
+{
+    /* Compile the regular expressions. */
+    init_regex();
+
+    /* Initialize the watchpoint pool. */
+    init_wp_pool();
 }
