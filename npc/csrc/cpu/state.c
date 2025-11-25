@@ -1,6 +1,6 @@
 #include "utils.h"
 
-NPCState npc_state = { .state = NPC_INIT };
+NPCState npc_state = { .state = NPC_STOP };
 
 int is_exit_status_bad()
 {

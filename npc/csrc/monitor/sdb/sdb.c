@@ -6,6 +6,9 @@ uint32_t EmuMemRead(paddr_t raddr);
 word_t eval_expr(char *e, bool *success);
 void reg_display();
 void init_regex();
+void init_wp_pool();
+void set_watchpoint(char *args);
+void free_wp(uint32_t N);
 
 
 static bool is_batch_mode = false;
@@ -17,8 +20,8 @@ static int cmd_si(char *args);
 static int cmd_info(char *args);
 static int cmd_x(char *args);
 static int cmd_p(char *args);
-// static int cmd_w(char *args);
-// static int cmd_d(char *args);
+static int cmd_w(char *args);
+static int cmd_d(char *args);
 
 #define NR_CMD ARRLEN(cmd_table)
 
@@ -34,8 +37,8 @@ static struct {
     { "info", "Print register or monitoring point information", cmd_info },
     { "x", "Find the value of the expression EXPR and use the result as the starting memory. The address is output in hexadecimal form as N consecutive 4-bytes", cmd_x },
     { "p", "Find the value of the expression EXPR", cmd_p },
-    // { "w", "Stop if EXPR changes", cmd_w },
-    // { "d", "Delete the monitor point with serial number N", cmd_d },
+    { "w", "Stop if EXPR changes", cmd_w },
+    { "d", "Delete the monitor point with serial number N", cmd_d },
 };
 
 static char *rl_gets()
@@ -197,7 +200,7 @@ static int cmd_p(char *args)
 
     return success ? 0 : -1;
 }
-/*
+
 static int cmd_w(char *args)
 {
     if (args == NULL) {
@@ -233,7 +236,7 @@ static int cmd_d(char *args)
     free_wp(n);
     return 0;
 }
-*/
+
 
 void sdb_set_batch_mode()
 {
@@ -285,5 +288,5 @@ void init_sdb()
     init_regex();
 
     /* Initialize the watchpoint pool. */
-    // init_wp_pool();
+    init_wp_pool();
 }
