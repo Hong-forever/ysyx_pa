@@ -7,7 +7,7 @@
 #define COLOR_BLUE "\033[1;34m"
 #define COLOR_END "\033[0m"
 
-enum { NPC_STOP, NPC_END, NPC_QUIT };
+enum { NPC_RUNNING, NPC_STOP, NPC_END, NPC_QUIT };
 
 typedef struct {
     int state;
