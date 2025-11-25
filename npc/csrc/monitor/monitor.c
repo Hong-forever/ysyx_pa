@@ -56,7 +56,7 @@ static size_t load_img()
     printf("The image is %s, size = 0x%08lx\n", img_file, size);
 
     fseek(fp, 0, SEEK_SET);
-    int ret = fread(guest_to_host(0), size, 1, fp);
+    int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
     assert(ret == 1);
 
     fclose(fp);

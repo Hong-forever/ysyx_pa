@@ -34,15 +34,15 @@ extern "C" void pmem_write(uint32_t waddr, uint32_t wdata, uint32_t wmask)
 }
 
 paddr_t *guest_to_host(paddr_t paddr) {
-    return pmem + paddr;
+    return pmem + paddr - RESET_VECTOR;
 }
 
 uint32_t EmuMemRead(paddr_t raddr)
 {
-    return pmem_read(raddr);
+    return pmem_read(raddr - RESET_VECTOR);
 }
 
 void EmuMemWrite(paddr_t waddr, uint32_t wdata, uint32_t wmask)
 {
-    pmem_write(waddr, wdata, wmask);
+    pmem_write(waddr-RESET_VECTOR, wdata, wmask);
 }
