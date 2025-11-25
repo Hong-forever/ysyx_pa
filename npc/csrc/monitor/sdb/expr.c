@@ -167,6 +167,7 @@ word_t eval_expr(char *e, bool *success)
     /* TODO: Insert codes to evaluate the expression. */
     token_idx = 0;
     word_t result = eval_top_term(success);
+    printf("eval_expr result: 0x%08x\n", result);
     if (*success && token_idx != nr_token) {
         printf("Error: never complete\n");
         *success = false;

@@ -165,7 +165,7 @@ static int cmd_x(char *args)
 
         int n = atoi(arg);
         word_t expr_res = eval_expr(expr_arg, &success);
-    printf("expr_res: 0x%08x\n", expr_res);
+        printf("expr_res: 0x%08x\n", expr_res);
         if(!success) {
             printf("expr error\n");
         }
