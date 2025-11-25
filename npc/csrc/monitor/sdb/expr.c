@@ -167,7 +167,6 @@ word_t eval_expr(char *e, bool *success)
     /* TODO: Insert codes to evaluate the expression. */
     token_idx = 0;
     word_t result = eval_top_term(success);
-    printf("eval_expr result: 0x%08x\n", result);
     if (*success && token_idx != nr_token) {
         printf("Error: never complete\n");
         *success = false;
@@ -342,6 +341,7 @@ static word_t eval_factor(bool *success)
         case TK_HEX_NUM: {
             token_idx++;
             result = (word_t)strtoul(token->str, NULL, 16);
+            printf("hex num: 0x%08x\n", result);
             break;
         }
         case TK_REG: {
