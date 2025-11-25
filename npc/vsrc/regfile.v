@@ -69,7 +69,8 @@ module regfile
         input int gpr28, input int gpr29, input int gpr30, input int gpr31);
 
     always @(*) begin
-        reg_value(I_inst_addr,
+        if(I_inst != `ZeroWord)
+            reg_value(I_inst_addr,
                   regs[0],  regs[1],  regs[2],  regs[3],  regs[4],  regs[5],  regs[6],  regs[7],
                   regs[8],  regs[9],  regs[10], regs[11], regs[12], regs[13], regs[14], regs[15],
                   regs[16], regs[17], regs[18], regs[19], regs[20], regs[21], regs[22], regs[23],

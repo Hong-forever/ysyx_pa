@@ -115,7 +115,7 @@ void info_watchpoint() {
 
     WP *index = head;
     while(index != NULL) {
-        printf("NUM: #%-3d EXPR: %-20s VALUE: 0x%08x HIT: %d\n", index->NO, index->expr, index->new_value, index->hit_count);
+        printf("Num: #%-3d   Expr: %-15s   Value: 0x%08x   Hit: %d\n", index->NO, index->expr, index->new_value, index->hit_count);
         index = index->next;
     }
     return ;
