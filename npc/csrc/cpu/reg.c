@@ -20,7 +20,7 @@ extern "C" void reg_value(int pc, int gpr[]) {
 void reg_display() {
     printf("pc: 0x%08x\n", cpu_pc);
     for(int i=0; i<32; i++) {
-        printf("regs[%-2d]-%-2s: 0x%08x\n", i, regs[i], cpu_gpr[i]);
+        printf("regs[%-02d]-%-3s: 0x%08x\n", i, regs[i], cpu_gpr[i]);
     }
 }
 
