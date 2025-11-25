@@ -14,14 +14,13 @@ extern "C" void reg_value(int pc, int gpr[]) {
     cpu_pc = pc;
     for (int i=0; i<32; i++) {
         cpu_gpr[i] = gpr[i];
-        printf("cpu_gpr: 0x%08x  gpr: 0x%08x\n", cpu_gpr[i], gpr[i]);
     }
 }
 
 void reg_display() {
     printf("pc: 0x%08x\n", cpu_pc);
     for(int i=0; i<32; i++) {
-        printf("regs[%-02d]-%-3s: 0x%08x\n", i, regs[i], cpu_gpr[i]);
+        printf("regs[%02d]-%-4s: 0x%08x\n", i, regs[i], cpu_gpr[i]);
     }
 }
 
