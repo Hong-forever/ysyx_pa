@@ -2,6 +2,8 @@
 #include "utils.h"
 
 void cpu_exec(uint64_t n);
+uint32_t EmuMemRead(paddr_t raddr);
+word_t eval_expr(char *e, bool *success);
 static bool is_batch_mode = false;
 
 static int cmd_help(char *args);
@@ -9,12 +11,10 @@ static int cmd_c(char *args);
 static int cmd_q(char *args);
 static int cmd_si(char *args);
 static int cmd_info(char *args);
-/*
 static int cmd_x(char *args);
-static int cmd_p(char *args);
-static int cmd_w(char *args);
-static int cmd_d(char *args);
-*/
+// static int cmd_p(char *args);
+// static int cmd_w(char *args);
+// static int cmd_d(char *args);
 
 #define NR_CMD ARRLEN(cmd_table)
 
@@ -151,7 +151,6 @@ static int cmd_info(char *args)
     return 0;
 }
 
-/*
 static int cmd_x(char *args)
 {
     char *arg = strtok(args, " ");
@@ -168,12 +167,12 @@ static int cmd_x(char *args)
         }
 
         for(int i=0; i<n; i++) {
-            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, vaddr_read(expr_res+4*i, 4));
+            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, EmuMemRead(expr_res+4*i));
         }
     }
     return 0;
 }
-
+/*
 static int cmd_p(char *args)
 {
     if (args == NULL) {

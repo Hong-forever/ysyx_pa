@@ -36,3 +36,13 @@ extern "C" void pmem_write(uint32_t waddr, uint32_t wdata, uint32_t wmask)
 paddr_t *guest_to_host(paddr_t paddr) {
     return pmem + paddr;
 }
+
+uint32_t EmuMemRead(paddr_t raddr)
+{
+    return pmem_read(raddr);
+}
+
+void EmuMemWrite(paddr_t waddr, uint32_t wdata, uint32_t wmask)
+{
+    pmem_write(waddr, wdata, wmask);
+}

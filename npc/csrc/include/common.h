@@ -4,9 +4,8 @@
 #include <Vtop.h>
 #include "macro.h"
 
-
-
 typedef uint32_t paddr_t;
+typedef uint32_t word_t;
 
 
 extern void init_monitor(int argc, char *argv[]);
