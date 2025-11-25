@@ -49,11 +49,11 @@ module regfile
                 I_rs2_raddr == `ZeroReg ? `ZeroWord :
                 (I_rd_we && I_rd_waddr == I_rs2_raddr) ? I_rd_wdata : regs[I_rs2_raddr];
 
-    import "DPI-C" function void trap(input int reg_data);
+    import "DPI-C" function void trap(input int reg_data, input int halt_pc);
 
     always @(*) begin
         if(I_inst == `RV_EBREAK) begin
-            trap(regs[10]);
+            trap(regs[10], I_inst_addr);
         end
     end
 

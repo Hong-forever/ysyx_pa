@@ -1,4 +1,5 @@
 #include "sdb.h"
+#include "utils.h"
 
 void cpu_exec(uint64_t n);
 static bool is_batch_mode = false;
@@ -84,6 +85,7 @@ static int cmd_c(char *args)
 static int cmd_q(char *args)
 {
     // Exit npc
+    npc_state.state = NPC_QUIT;
     return -1;
 }
 
