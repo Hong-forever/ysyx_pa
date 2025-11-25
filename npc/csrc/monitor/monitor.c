@@ -1,5 +1,6 @@
 #include "common.h"
 #include <getopt.h>
+#include "utils.h"
 
 static char *img_file = NULL;
 
@@ -61,6 +62,11 @@ static size_t load_img()
     return size;
 }
 
+static void welcome()
+{
+    printf(COLOR_BLUE "Welcome to NPC!\n" COLOR_END);
+}
+
 void init_monitor(int argc, char *argv[]) {
 
     parse_args(argc, argv);
@@ -77,5 +83,5 @@ void init_monitor(int argc, char *argv[]) {
 
     // IFDEF(CONFIG_ITRACE, init_disasm());
 
-    printf(COLOR_GREEN "Welcome to NPC!\n" COLOR_END);
+    welcome();
 }
