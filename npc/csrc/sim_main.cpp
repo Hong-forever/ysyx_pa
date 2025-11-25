@@ -35,9 +35,12 @@ static void reset(int n)
 
 void cpu_exec(uint64_t n)
 {
+    int i = 0;
     while (n-- > 0) {
         IFDEF(CONFIG_USE_NVBOARD, nvboard_update());
         single_cycle();
+        printf("NPC Cycle = %u\n", i++);
+        if (trap_flag != 0) break;
     }
 }
 
@@ -55,11 +58,10 @@ int main(int argc, char *argv[])
         printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
         printf(COLOR_GREEN "[====================] HIT GOOD TRAP! [====================]\n" COLOR_END);
         printf(COLOR_GREEN "[==========================================================]\n" COLOR_END);
-        return 0;
     } else if (trap_flag == 2) {
         printf(COLOR_RED "[=========================================================]\n" COLOR_END);
         printf(COLOR_RED "[====================] HIT BAD TRAP! [====================]\n" COLOR_END);
         printf(COLOR_RED "[=========================================================]\n" COLOR_END);
-        return 0;
     }
+    return 0;
 }
