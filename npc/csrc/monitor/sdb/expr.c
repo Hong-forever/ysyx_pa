@@ -85,7 +85,7 @@ static bool make_token(char *e)
                 char *substr_start = e + position;
                 int substr_len = pmatch.rm_eo;
 
-                printf(COLOR_BLUE "match rules[%d] = \"%s\" at position %d with len %d: %.*s" COLOR_END,
+                printf(COLOR_BLUE "match rules[%d] = \"%s\" at position %d with len %d: %.*s\n" COLOR_END,
                     i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
                 /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -341,7 +341,6 @@ static word_t eval_factor(bool *success)
         case TK_HEX_NUM: {
             token_idx++;
             result = (word_t)strtoul(token->str, NULL, 16);
-            printf("hex num: 0x%08x\n", result);
             break;
         }
         case TK_REG: {
