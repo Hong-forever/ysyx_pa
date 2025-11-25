@@ -8,13 +8,12 @@ const char *regs[] = {
 };
 
 int cpu_pc = 0;
-int cpu_gpr[32];
+int cpu_gpr[32] = {0};
 
 extern "C" void reg_value(int pc, int gpr[]) {
     cpu_pc = pc;
     for (int i=0; i<32; i++) {
         cpu_gpr[i] = gpr[i];
-        printf("cpu_gpr[%d]: 0x%08x, gpr[%d]: 0x%08x\n", i, cpu_gpr[i], i, gpr[i]);
     }
 }
 
