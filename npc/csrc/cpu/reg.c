@@ -20,43 +20,19 @@ extern "C" void reg_value(int pc, int gpr0, int gpr1, int gpr2, int gpr3,
                           int gpr28, int gpr29, int gpr30, int gpr31)
 {
     cpu_pc = pc;
-    cpu_gpr[0] = gpr0;
-    cpu_gpr[1] = gpr1;
-    cpu_gpr[2] = gpr2;
-    cpu_gpr[3] = gpr3;
-    cpu_gpr[4] = gpr4;
-    cpu_gpr[5] = gpr5;
-    cpu_gpr[6] = gpr6;
-    cpu_gpr[7] = gpr7;
-    cpu_gpr[8] = gpr8;
-    cpu_gpr[9] = gpr9;
-    cpu_gpr[10] = gpr10;
-    cpu_gpr[11] = gpr11;
-    cpu_gpr[12] = gpr12;
-    cpu_gpr[13] = gpr13;
-    cpu_gpr[14] = gpr14;
-    cpu_gpr[15] = gpr15;
-    cpu_gpr[16] = gpr16;
-    cpu_gpr[17] = gpr17;
-    cpu_gpr[18] = gpr18;
-    cpu_gpr[19] = gpr19;
-    cpu_gpr[20] = gpr20;
-    cpu_gpr[21] = gpr21;
-    cpu_gpr[22] = gpr22;
-    cpu_gpr[23] = gpr23;
-    cpu_gpr[24] = gpr24;
-    cpu_gpr[25] = gpr25;
-    cpu_gpr[26] = gpr26;
-    cpu_gpr[27] = gpr27;
-    cpu_gpr[28] = gpr28;
-    cpu_gpr[29] = gpr29;
-    cpu_gpr[30] = gpr30;
-    cpu_gpr[31] = gpr31;
+    cpu_gpr[0] = gpr0; cpu_gpr[1] = gpr1; cpu_gpr[2] = gpr2; cpu_gpr[3] = gpr3;
+    cpu_gpr[4] = gpr4; cpu_gpr[5] = gpr5; cpu_gpr[6] = gpr6; cpu_gpr[7] = gpr7;
+    cpu_gpr[8] = gpr8; cpu_gpr[9] = gpr9; cpu_gpr[10] = gpr10; cpu_gpr[11] = gpr11;
+    cpu_gpr[12] = gpr12; cpu_gpr[13] = gpr13; cpu_gpr[14] = gpr14; cpu_gpr[15] = gpr15;
+    cpu_gpr[16] = gpr16; cpu_gpr[17] = gpr17; cpu_gpr[18] = gpr18; cpu_gpr[19] = gpr19;
+    cpu_gpr[20] = gpr20; cpu_gpr[21] = gpr21; cpu_gpr[22] = gpr22; cpu_gpr[23] = gpr23;
+    cpu_gpr[24] = gpr24; cpu_gpr[25] = gpr25; cpu_gpr[26] = gpr26; cpu_gpr[27] = gpr27;
+    cpu_gpr[28] = gpr28; cpu_gpr[29] = gpr29; cpu_gpr[30] = gpr30; cpu_gpr[31] = gpr31;
 }
 
 void reg_display()
 {
-    printf("[==] PC [==] : 0x%08d\n", cpu_pc);
+    printf("[==] PC [==] : 0x%08x\n", cpu_pc);
     for (int i = 0; i < 32; i++) {
         printf("regs[%02d]-%-4s: 0x%08x\n", i, regs[i], cpu_gpr[i]);
     }
