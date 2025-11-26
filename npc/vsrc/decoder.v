@@ -121,7 +121,7 @@ module decoder
     wire inst_is_lui = (opcode == `RV32I_OP_LUI);
     wire inst_is_auipc = (opcode == `RV32I_OP_AUIPC);
     wire inst_is_type_i = (opcode == `RV32I_OP_TYPE_I);
-    wire inst_is_type_r = (opcode == `RV32IM_OP_TYPE_R_M);
+    wire inst_is_type_r_m = (opcode == `RV32IM_OP_TYPE_R_M);
     wire inst_is_type_b = (opcode == `RV32I_OP_TYPE_B);
     wire inst_is_type_s = (opcode == `RV32I_OP_TYPE_S);
     wire inst_is_type_l = (opcode == `RV32I_OP_TYPE_IL);
@@ -133,13 +133,26 @@ module decoder
     wire inst_is_csrrsi = inst_is_csr & (funct3 == `RV_F3_CSRRSI);
     wire inst_is_csrrci = inst_is_csr & (funct3 == `RV_F3_CSRRCI);
 
-    wire rs1_re = inst_is_type_l | inst_is_type_i | inst_is_type_s | inst_is_type_r | inst_is_type_b | inst_is_jalr | inst_is_jal | inst_is_csrrw | inst_is_csrrs | inst_is_csrrc;
-    wire rs2_re = inst_is_type_s | inst_is_type_r | inst_is_type_b;
-    wire rd_we = inst_is_type_l | inst_is_type_i | inst_is_auipc | inst_is_lui | inst_is_type_r | inst_is_jalr | inst_is_jal | inst_is_csr;
+    wire rs1_re = inst_is_type_l | inst_is_type_i | inst_is_type_s | inst_is_type_r_m | inst_is_type_b | inst_is_jalr | inst_is_jal | inst_is_csrrw | inst_is_csrrs | inst_is_csrrc;
+    wire rs2_re = inst_is_type_s | inst_is_type_r_m | inst_is_type_b;
+    wire rd_we = inst_is_type_l | inst_is_type_i | inst_is_auipc | inst_is_lui | inst_is_type_r_m | inst_is_jalr | inst_is_jal | inst_is_csr;
     wire imm_use = inst_is_type_l | inst_is_type_i | inst_is_auipc | inst_is_lui | inst_is_type_s | inst_is_type_b | inst_is_jalr | inst_is_jal | inst_is_csrrwi | inst_is_csrrsi | inst_is_csrrci;
     wire csr_re = inst_is_csr;
     wire csr_we = inst_is_csr;
     wire ls_valid = inst_is_type_l | inst_is_type_s;
+
+    import "DPI-C" function void Invalid_inst(input int inst_is_invalid);
+
+    wire inst_is_zero = (I_inst == `ZeroWord);
+    wire InstInValid = ~(
+        inst_is_jalr | inst_is_jal | inst_is_lui | inst_is_auipc |
+        inst_is_type_i | inst_is_type_r_m | inst_is_type_b | inst_is_type_s |
+        inst_is_type_l | inst_is_csr | inst_is_zero
+    );
+
+    always @(*) begin
+        Invalid_inst(InstInValid);
+    end
 
     reg [`ls_diff_bus     ] ls_type;
     reg [`ALUCTL_WIDTH-1:0] alu_ctrl;

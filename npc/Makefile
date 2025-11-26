@@ -1,5 +1,6 @@
 
 use_nvbrd ?= 0
+CONFIG_ITRACE = 1
 
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
@@ -39,13 +40,21 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 endif
 
-# project source
-VSRCS ?= $(shell find $(abspath ./vsrc) -name "*.v")
-CSRCS ?= $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+FILELIST_MK = $(shell find -L . -name "filelist.mk")
+include $(FILELIST_MK)
 
-ifeq ($(use_nvbrd), 1)
-CSRCS += $(SRC_AUTO_BIND)
+# project source
+VSRCS-y ?= $(shell find $(abspath ./vsrc) -name "*.v")
+CSRCS-y ?= $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+
+ifeq ($(use_nvbrd), )
+CSRCS-BLACKLIST-y += $(SRC_AUTO_BIND)
 endif
+
+VSRCS-BLACKLIST-y += $(VSRCS-BLACKLIST)
+CSRCS-BLACKLIST-y += $(CSRCS-BLACKLIST)
+VSRCS := $(filter-out $(VSRCS-BLACKLIST-y),$(VSRCS-y))
+CSRCS := $(filter-out $(CSRCS-BLACKLIST-y),$(CSRCS-y))
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
@@ -54,8 +63,14 @@ CXXFLAGS += $(INCFLAGS)
 CXXFLAGS += -g
 CXXFLAGS += -DTOP_NAME="V$(TOPNAME)" 
 
+# CXXFLAGS += -fpermissive
+
 ifeq ($(use_nvbrd), 1)
 CXXFLAGS += -DCONFIG_USE_NVBOARD=1
+endif
+
+ifeq ($(CONFIG_ITRACE), 1)
+CXXFLAGS += -DCONFIG_ITRACE=1
 endif
 
 LDFLAGS += -lreadline
