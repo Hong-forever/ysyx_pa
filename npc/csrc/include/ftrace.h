@@ -80,10 +80,5 @@ typedef struct {
 } FunctionSymbol;
 
 
-
-void init_ftrace(char *elf_file);
-void cleanup_ftrace(void);
-void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t imm, uint32_t op); //op=1 jal, op=2 jalr
-
 #endif
 

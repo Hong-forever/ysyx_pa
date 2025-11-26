@@ -1,4 +1,5 @@
 #include "isa.h"
+#include "utils.h"
 
 const char *regs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
@@ -31,12 +32,11 @@ extern "C" void cpu_value(int valid, int inst, int pc, int gpr0, int gpr1, int g
     cpu.gpr[20] = gpr20; cpu.gpr[21] = gpr21; cpu.gpr[22] = gpr22; cpu.gpr[23] = gpr23;
     cpu.gpr[24] = gpr24; cpu.gpr[25] = gpr25; cpu.gpr[26] = gpr26; cpu.gpr[27] = gpr27;
     cpu.gpr[28] = gpr28; cpu.gpr[29] = gpr29; cpu.gpr[30] = gpr30; cpu.gpr[31] = gpr31;
-
 }
 
 void reg_display()
 {
-    printf("[==> PC ==] : 0x%08x\n", cpu.pc);
+    printf("[==> PC ==]  : 0x%08x\n", cpu.pc);
     for (int i = 0; i < 32; i++) {
         printf("regs[%02d]-%-4s: 0x%08x\n", i, regs[i], cpu.gpr[i]);
     }

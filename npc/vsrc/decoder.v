@@ -141,24 +141,10 @@ module decoder
     wire csr_we = inst_is_csr;
     wire ls_valid = inst_is_type_l | inst_is_type_s;
 
-    import "DPI-C" function void Invalid_inst(input int inst_is_invalid);
-
-    wire inst_is_zero = (I_inst == `ZeroWord);
-    wire InstInValid = ~(
-        inst_is_jalr | inst_is_jal | inst_is_lui | inst_is_auipc |
-        inst_is_type_i | inst_is_type_r_m | inst_is_type_b | inst_is_type_s |
-        inst_is_type_l | inst_is_csr | inst_is_zero
-    );
-
-    always @(*) begin
-        Invalid_inst(InstInValid);
-    end
-
     reg [`ls_diff_bus     ] ls_type;
     reg [`ALUCTL_WIDTH-1:0] alu_ctrl;
     reg [`CSRCTL_WIDTH-1:0] csr_ctrl;
     reg [`BRUCTL_WIDTH-1:0] bru_ctrl;
-
 
     always @(*) begin
         ls_type = `ls_nop;

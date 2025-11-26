@@ -362,6 +362,8 @@ module riscv_ic
         .I_rd_wdata             (I_wb_rd_wdata              )
     );
 
+    wire [`RegAddrBus] I_rs1; // for ftrace npc
+
     exec u0_exec
     (
         .clk                    (clk                        ),
@@ -390,6 +392,8 @@ module riscv_ic
         .I_rs1_rdata            (I_ex_rs1_rdata             ),
         .I_rs2_rdata            (I_ex_rs2_rdata             ),
         .I_csr_rdata            (I_ex_csr_rdata             ),
+
+        .I_rs1                  (I_rs1                      ), // for ftrace npc
 
         .I_ls_rd_wdata          (I_ls_fwd_rd_wdata          ),
         .I_wb_rd_wdata          (I_wb_fwd_rd_wdata          ),
@@ -574,10 +578,15 @@ module riscv_ic
         .I_csr_re               (O_dec_csr_re               ),
         .I_except               (O_dec_except               ),
 
+        .I_rs1                  (O_rs1_raddr                ),
+
         .O_inst                 (I_ex_inst                  ),
         .O_inst_addr            (I_ex_inst_addr             ),
         .O_rs1_rdata            (I_ex_rs1_rdata             ),
         .O_rs2_rdata            (I_ex_rs2_rdata             ),
+
+        .O_rs1                  (I_rs1                      ), // for ftrace npc
+
         .O_imm                  (I_ex_imm                   ),
         .O_rd_we                (I_ex_rd_we                 ),
         .O_rd_waddr             (I_ex_rd_waddr              ),

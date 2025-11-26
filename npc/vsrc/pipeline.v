@@ -71,10 +71,15 @@ module pipeline_dec_ex
     input   wire                        I_csr_re,
     input   wire    [`Except_Bus    ]   I_except,           // 异常
 
+    input   wire    [`RegAddrBus    ]   I_rs1,              // for ftrace npc
+
     output  reg     [`InstBus       ]   O_inst,             // 指令内容
     output  reg     [`InstAddrBus   ]   O_inst_addr,        // 指令地址
     output  reg     [`RegDataBus    ]   O_rs1_rdata,        // 通用寄存器1读数据
     output  reg     [`RegDataBus    ]   O_rs2_rdata,        // 通用寄存器2读数据
+
+    output  reg     [`RegAddrBus    ]   O_rs1,              // for ftrace npc
+
     output  reg     [`RegDataBus    ]   O_imm,              // 立即数
     output  reg                         O_rd_we,            // 写通用寄存器标志
     output  reg     [`RegAddrBus    ]   O_rd_waddr,         // 写通用寄存器地址
@@ -135,6 +140,8 @@ module pipeline_dec_ex
             O_ls_type       <= 'b0;
             O_csr_re        <= 'b0;
             O_except        <= 'b0;
+
+            O_rs1           <= 'b0;
         end else if(I_kill | I_flush | (I_bru_taken & ~I_stall)) begin
             O_inst          <= 'b0;
             O_inst_addr     <= 'b0;
@@ -164,6 +171,8 @@ module pipeline_dec_ex
             O_ls_type       <= 'b0;
             O_csr_re        <= 'b0;
             O_except        <= 'b0;
+
+            O_rs1           <= 'b0;
         end else if(~I_stall) begin
             O_inst          <= I_inst;
             O_inst_addr     <= I_inst_addr;
@@ -193,6 +202,8 @@ module pipeline_dec_ex
             O_ls_type       <= I_ls_type;
             O_csr_re        <= I_csr_re;
             O_except        <= I_except;
+
+            O_rs1           <= I_rs1;
         end
     end
 

@@ -67,25 +67,32 @@ module regfile
         input int gpr24, input int gpr25, input int gpr26, input int gpr27, 
         input int gpr28, input int gpr29, input int gpr30, input int gpr31);
 
-    reg [`InstBus] inst_reg;
-    reg [`InstAddrBus] pc_reg;
+    reg [`InstBus] inst_r1, inst_r2;
+    reg [`InstAddrBus] pc_r1, pc_r2;
     always @(posedge clk or posedge rst) begin
         if(rst) begin
-            inst_reg <= `ZeroWord;
-            pc_reg   <= `ZeroWord;
+            inst_r1 <= `ZeroWord;
+            pc_r1   <= `ZeroWord;
+            inst_r2 <= `ZeroWord;
+            pc_r2   <= `ZeroWord;
         end else begin
-            inst_reg <= I_inst;
-            pc_reg   <= I_inst_addr;
+            inst_r1 <= I_inst;
+            pc_r1   <= I_inst_addr;
+            inst_r2 <= inst_r1;
+            pc_r2   <= pc_r1;
         end
     end
 
     always @(*) begin
-        if(I_inst != `ZeroWord && (inst_reg != I_inst || pc_reg != I_inst_addr))
-            cpu_value(1, I_inst, I_inst_addr,
-                  regs[0],  regs[1],  regs[2],  regs[3],  regs[4],  regs[5],  regs[6],  regs[7],
-                  regs[8],  regs[9],  regs[10], regs[11], regs[12], regs[13], regs[14], regs[15],
-                  regs[16], regs[17], regs[18], regs[19], regs[20], regs[21], regs[22], regs[23],
-                  regs[24], regs[25], regs[26], regs[27], regs[28], regs[29], regs[30], regs[31]);
+        if(inst_r1 != `ZeroWord && (inst_r2 != inst_r1 || pc_r2 != pc_r1))
+            cpu_value
+            (
+                1, inst_r1, pc_r1,
+                regs[0],  regs[1],  regs[2],  regs[3],  regs[4],  regs[5],  regs[6],  regs[7],
+                regs[8],  regs[9],  regs[10], regs[11], regs[12], regs[13], regs[14], regs[15],
+                regs[16], regs[17], regs[18], regs[19], regs[20], regs[21], regs[22], regs[23],
+                regs[24], regs[25], regs[26], regs[27], regs[28], regs[29], regs[30], regs[31]
+            );
         else begin end
     end
 

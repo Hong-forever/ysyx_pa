@@ -34,6 +34,8 @@ module exec
     input   wire    [`RegDataBus]       I_rs2_rdata,
     input   wire    [`CSRDataBus]       I_csr_rdata,
 
+    input   wire    [`RegAddrBus]       I_rs1,      // for ftrace npc
+
     input   wire    [`RegDataBus]       I_ls_rd_wdata,
     input   wire    [`RegDataBus]       I_wb_rd_wdata,
 
@@ -251,5 +253,17 @@ module exec
     assign O_except = I_except;
 
     assign O_stallreq = stallreq_div | stallreq_mul;
+
+    import "DPI-C" function void ftrace_exec(input int pc, input int dnpc, input int rs1, input int rd, input int imm, input int op); //op=1 jal, op=2 jalr
+
+    always @(*) begin
+        if (I_BRUCtrl == 1) begin
+            ftrace_exec(I_inst_addr, O_bru_target, I_rs1, O_rd_waddr, I_imm, 1);
+        end
+        else if (I_BRUCtrl == 2) begin
+            ftrace_exec(I_inst_addr, O_bru_target, I_rs1, O_rd_waddr, I_imm, 2);
+        end
+    end
+
     
 endmodule //exu

@@ -1,4 +1,4 @@
-#include <ftrace.h>
+#include "ftrace.h"
 
 #define MAX_FUNCTIONS 1000
 #define MAX_CALL_DEPTH 200 
@@ -148,7 +148,8 @@ void init_ftrace(char *elf_file) {
     fclose(fp);
 }
 
-void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t imm, uint32_t op) { //op=1 jal, op=2 jalr
+extern "C" void ftrace_exec(int pc, int dnpc, int rs1, int rd, int imm, int op) { //op=1 jal, op=2 jalr
+#ifdef CONFIG_FTRACE
     if(!ftrace_enabled) return ;
 
     if(op == 2 && rs1 == 1 && rd == 0 && imm == 0 && call_depth > 0) {
@@ -184,4 +185,5 @@ void ftrace_exec(uint32_t pc, uint32_t dnpc, uint32_t rs1, uint32_t rd, uint32_t
         }
         
     }
+#endif
 }

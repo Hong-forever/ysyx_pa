@@ -116,13 +116,6 @@ extern "C" void trap(int reg_data, int halt_pc)
     npc_state.halt_ret = reg_data + 1;
 }
 
-extern "C" void Invalid_inst(int inst_is_invalid)
-{
-    if(inst_is_invalid) {
-        npc_state.state = NPC_ABORT;
-    }
-}
-
 static void single_cycle()
 {
     dut.clk = 0;
@@ -156,7 +149,7 @@ static void exec_once()
     
 #ifdef CONFIG_ITRACE
     char *p = s.logbuf;
-    p += snprintf(p, sizeof(s.logbuf), "0x%08x:", s.pc);
+    p += snprintf(p, sizeof(s.logbuf), "0x%08x: ", s.pc);
     int i;
     uint8_t *inst = (uint8_t *)&s.inst;
 
@@ -166,7 +159,7 @@ static void exec_once()
 
     int ilen_max = 4;
     int space_len = ilen_max - 4;
-    space_len = space_len * 3 + 1;
+    space_len = space_len * 3 + 5;
     memset(p, ' ', space_len);
     p += space_len;
 
@@ -204,8 +197,8 @@ static void execute(uint64_t n)
 
 void cpu_exec(uint64_t n)
 {
-    // g_print_step = (n <= MAX_INSTR_TO_PRINT);
-    g_print_step = true;
+    g_print_step = (n <= MAX_INST_TO_PRINT);
+
     switch (npc_state.state)
     {
         case NPC_END: 
@@ -231,6 +224,7 @@ void cpu_exec(uint64_t n)
             break;
         case NPC_ABORT:
             printf(COLOR_RED "[=>>> ABORT at pc = 0x%08x\n" COLOR_END, cpu.pc);
+            assert_fail_msg();
             break;
         // case NPC_QUIT:
         //     break;
