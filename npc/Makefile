@@ -1,6 +1,7 @@
 
 use_nvbrd ?= 0
 CONFIG_ITRACE = 1
+# CONFIG_LOOP_DETECT = 1
 
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
@@ -60,7 +61,7 @@ CSRCS := $(filter-out $(CSRCS-BLACKLIST-y),$(CSRCS-y))
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -g
+CXXFLAGS += -g 
 CXXFLAGS += -DTOP_NAME="V$(TOPNAME)" 
 
 # CXXFLAGS += -fpermissive
@@ -71,6 +72,10 @@ endif
 
 ifeq ($(CONFIG_ITRACE), 1)
 CXXFLAGS += -DCONFIG_ITRACE=1
+endif
+
+ifeq ($(CONFIG_LOOP_DETECT), 1)
+CXXFLAGS += -DCONFIG_LOOP_DETECT=1
 endif
 
 LDFLAGS += -lreadline
@@ -87,7 +92,7 @@ run: sim
 
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) core.*
 	
 include ../Makefile
 

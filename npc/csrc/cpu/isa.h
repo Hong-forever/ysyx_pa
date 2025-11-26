@@ -19,6 +19,8 @@ typedef struct {
 
 extern Decode s;
 
+extern int cpu_inst_valid;
+
 // loop detect
 typedef struct {
     word_t pc;

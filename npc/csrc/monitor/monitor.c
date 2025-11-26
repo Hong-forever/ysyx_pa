@@ -7,6 +7,7 @@ static char *img_file = NULL;
 void sdb_set_batch_mode();
 paddr_t *guest_to_host(paddr_t paddr);
 void init_sdb();
+void init_disasm();
 
 static int parse_args(int argc, char *argv[]) {
     const struct option table[] = {
@@ -83,7 +84,7 @@ void init_monitor(int argc, char *argv[]) {
 
     init_sdb();
 
-    // IFDEF(CONFIG_ITRACE, init_disasm());
+    IFDEF(CONFIG_ITRACE, init_disasm());
 
     welcome();
 }
