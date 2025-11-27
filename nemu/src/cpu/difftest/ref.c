@@ -13,30 +13,56 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <isa.h>
 #include <cpu/cpu.h>
 #include <difftest-def.h>
+#include <isa.h>
 #include <memory/paddr.h>
 
-__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  assert(0);
+__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
+{
+    if (direction == DIFFTEST_TO_REF) {
+        // printf("difftest_memcpy to ref: addr=0x%08x, n=%lu\n", addr, n);
+        memcpy(guest_to_host(addr), buf, n);
+    } else {
+        assert(0);
+    }
 }
 
-__EXPORT void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
+__EXPORT void difftest_regcpy(void *dut, bool direction)
+{
+    if (direction == DIFFTEST_TO_REF) {
+        // printf("difftest_regcpy to ref: pc=0x%08x, dutpc = 0x%08x\n", cpu.pc, ((CPU_state *)dut)->pc);
+        cpu.pc = ((CPU_state *)dut)->pc;
+        for (int i = 0; i < 32; i++) {
+            cpu.gpr[i] = ((CPU_state *)dut)->gpr[i];
+        }
+    } else if (direction == DIFFTEST_TO_DUT) {
+        // printf("difftest_regcpy to dut: pc=0x%08x\n", cpu.pc);
+        ((CPU_state *)dut)->pc = cpu.pc;
+        for (int i = 0; i < 32; i++) {
+            ((CPU_state *)dut)->gpr[i] = cpu.gpr[i];
+        }
+        // printf("difftest_regcpy to dut done: pc=0x%08x, ref_cpu=0x%08x\n", ((CPU_state *)dut)->pc, cpu.pc);
+    } else {
+        assert(0);
+    }
 }
 
-__EXPORT void difftest_exec(uint64_t n) {
-  assert(0);
+__EXPORT void difftest_exec(uint64_t n)
+{
+    cpu_exec(n);
 }
 
-__EXPORT void difftest_raise_intr(word_t NO) {
-  assert(0);
+__EXPORT void difftest_raise_intr(word_t NO)
+{
+    assert(0);
 }
 
-__EXPORT void difftest_init(int port) {
-  void init_mem();
-  init_mem();
-  /* Perform ISA dependent initialization. */
-  init_isa();
+__EXPORT void difftest_init(int port)
+{
+    void init_mem();
+    init_mem();
+    /* Perform ISA dependent initialization. */
+    init_isa();
+    // printf("cpu.pc = 0x%08x\n", cpu.pc);
 }

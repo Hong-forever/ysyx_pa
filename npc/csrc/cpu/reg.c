@@ -63,3 +63,27 @@ word_t reg_str2val(const char *s, bool *success)
     *success = false;
     return 0;
 }
+
+bool difftest_checkregs(CPU_state *ref_r, paddr_t pc) {
+    bool flag = true;
+
+    if(ref_r->pc != cpu.pc) {
+        flag = false;
+        printf(COLOR_RED "DIFF==>> ref_pc: 0x%08x, dut_pc: 0x%08x\n" COLOR_END, ref_r->pc, cpu.pc);
+    }
+
+    for(int i=0; i<32; i++) {
+        if(ref_r->gpr[i] != cpu.gpr[i]) {
+            printf(COLOR_RED "DIFF==>> ref_reg[%d]: 0x%08x, dut_reg[%d]: 0x%08x\n" COLOR_END, i, ref_r->pc, i, cpu.pc);
+            flag = false;
+            break;
+        } 
+    }
+
+    if(!flag) {
+        printf("Difftest: Error at pc: 0x%08x\n", pc);
+        return false;
+    }
+
+    return true;
+}

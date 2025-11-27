@@ -4,8 +4,8 @@
 #include "common.h"
 
 typedef struct {
-    word_t pc;
     word_t gpr[32];
+    word_t pc;
 } CPU_state;
 
 extern CPU_state cpu;

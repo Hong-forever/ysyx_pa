@@ -1,13 +1,7 @@
 
+include $(NPC_HOME)/scripts/my_config.mk
+
 use_nvbrd ?= 0
-
-CONFIG_ITRACE = 1
-CONFIG_MTRACE = 0
-CONFIG_MTRACE_BASE = 0x00000000
-CONFIG_MTRACE_SIZE = 0x1000
-# CONFIG_FTRACE = 1
-
-# CONFIG_LOOP_DETECT = 1
 
 ifeq ($(use_nvbrd), 1)
 NXDC_FILES = constr/top.nxdc
@@ -18,6 +12,12 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 endif
 
 TOPNAME = top
+
+GUEST_ISA ?= riscv32
+CONFIG_DIFFTEST_REF_NAME ?= "nemu-interpreter"
+
+remove_quote = $(patsubst "%",%,$(1))
+
 
 INC_PATH += $(sort $(dir $(shell find $(abspath ./csrc) -name "*.h")))
 
@@ -32,11 +32,14 @@ BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
+include $(NPC_HOME)/scripts/difftest.mk
+
 NPC_EXEC := $(BIN) $(IMG)
+ARGS += $(ARGS_DIFF)
 
 sim: $(NPC_EXEC)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$(BIN) $(ARGS) $(IMG)
+	LD_PRELOAD=$(shell gcc -print-file-name=libasan.so) $(BIN) $(ARGS) $(IMG)
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -67,7 +70,7 @@ CSRCS := $(filter-out $(CSRCS-BLACKLIST-y),$(CSRCS-y))
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -g 
+CXXFLAGS += -g -O2 
 CXXFLAGS += -DTOP_NAME="V$(TOPNAME)" 
 
 # CXXFLAGS += -fpermissive
@@ -76,24 +79,7 @@ ifeq ($(use_nvbrd), 1)
 CXXFLAGS += -DCONFIG_USE_NVBOARD=1
 endif
 
-ifeq ($(CONFIG_ITRACE), 1)
-CXXFLAGS += -DCONFIG_ITRACE=1
-endif
-
-ifeq ($(CONFIG_MTRACE), 1)
-CXXFLAGS += -DCONFIG_MTRACE=1
-endif
-CXXFLAGS += -DCONFIG_MTRACE_BASE=$(CONFIG_MTRACE_BASE) -DCONFIG_MTRACE_SIZE=$(CONFIG_MTRACE_SIZE)
-
-ifeq ($(CONFIG_FTRACE), 1)
-CXXFLAGS += -DCONFIG_FTRACE=1
-endif
-
-ifeq ($(CONFIG_LOOP_DETECT), 1)
-CXXFLAGS += -DCONFIG_LOOP_DETECT=1
-endif
-
-LDFLAGS += -lreadline
+LDFLAGS += -lreadline -ldl -lm -lstdc++ -lpthread
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)

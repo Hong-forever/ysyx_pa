@@ -4,6 +4,7 @@
 static TOP_NAME dut;
 int cpu_inst_valid = 0;
 
+IFDEF(CONFIG_DIFFTEST, void difftest_step(paddr_t pc/*, vaddr_t npc*/));
 void reg_display();
 
 #ifdef CONFIG_USE_NVBOARD
@@ -224,7 +225,6 @@ void cpu_exec(uint64_t n)
             break;
         case NPC_ABORT:
             printf(COLOR_RED "[=>>> ABORT at pc = 0x%08x\n" COLOR_END, cpu.pc);
-            assert_fail_msg();
             break;
         // case NPC_QUIT:
         //     break;

@@ -121,6 +121,7 @@ void detect_loop_pattern() {
     }
 }
 static void exec_once(Decode *s, vaddr_t pc) {
+    // printf("exec_once at pc: 0x%08x\n", pc);
     s->pc = pc;
     s->snpc = pc;
     isa_exec_once(s);
@@ -155,6 +156,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
 static void execute(uint64_t n) {
     Decode s;
     for (;n > 0; n --) {
+        // printf("exec: 0x%08x\n", cpu.pc);
         exec_once(&s, cpu.pc);
         g_nr_guest_inst ++;
         trace_and_difftest(&s, cpu.pc);
