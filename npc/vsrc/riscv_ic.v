@@ -351,6 +351,11 @@ module riscv_ic
         .I_inst                 (I_wb_inst                  ),
         .I_inst_addr            (I_wb_inst_addr             ),
 
+        .I_if_addr              (O_if_inst_addr             ),
+        .I_dec_addr             (O_dec_inst_addr            ),
+        .I_ex_addr              (O_ex_inst_addr             ),
+        .I_ls_addr              (O_ls_inst_addr             ),
+
         .I_rs1_raddr            (O_rs1_raddr                ),
         .I_rs2_raddr            (O_rs2_raddr                ),
 

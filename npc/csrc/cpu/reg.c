@@ -11,7 +11,7 @@ const char *regs[] = {
 CPU_state cpu = {};
 Decode s = {};
 
-extern "C" void cpu_value(int valid, int inst, int pc, int gpr0, int gpr1, int gpr2, int gpr3,
+extern "C" void cpu_value(int valid, int inst, int inst_addr, int pc, int gpr0, int gpr1, int gpr2, int gpr3,
                           int gpr4, int gpr5, int gpr6, int gpr7,
                           int gpr8, int gpr9, int gpr10, int gpr11,
                           int gpr12, int gpr13, int gpr14, int gpr15,
@@ -21,7 +21,7 @@ extern "C" void cpu_value(int valid, int inst, int pc, int gpr0, int gpr1, int g
                           int gpr28, int gpr29, int gpr30, int gpr31)
 {
     cpu_inst_valid = valid;
-    s.inst = inst; s.pc = pc;
+    s.inst = inst; s.pc = inst_addr;
 
     cpu.pc = pc;
     cpu.gpr[0] = gpr0; cpu.gpr[1] = gpr1; cpu.gpr[2] = gpr2; cpu.gpr[3] = gpr3;
@@ -69,12 +69,12 @@ bool difftest_checkregs(CPU_state *ref_r, paddr_t pc) {
 
     if(ref_r->pc != cpu.pc) {
         flag = false;
-        printf(COLOR_RED "DIFF==>> ref cpu.pc: 0x%08x, dut cpu.pc: 0x%08x\n" COLOR_END, ref_r->pc, cpu.pc);
+        printf(COLOR_RED "DIFF==>> pc(ref): 0x%08x, pc(dut): 0x%08x\n" COLOR_END, ref_r->pc, cpu.pc);
     }
 
     for(int i=0; i<32; i++) {
         if(ref_r->gpr[i] != cpu.gpr[i]) {
-            printf(COLOR_RED "DIFF==>> ref cpu.gpr[%d]: 0x%08x, dut cpu.gpr[%d]: 0x%08x\n" COLOR_END, i, ref_r->pc, i, cpu.pc);
+            printf(COLOR_RED "DIFF==>> gpr[%d](ref): 0x%08x, gpr[%d](dut): 0x%08x\n" COLOR_END, i, ref_r->gpr[i], i, cpu.gpr[i]);
             flag = false;
             break;
         } 

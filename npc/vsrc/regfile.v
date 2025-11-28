@@ -12,6 +12,12 @@ module regfile
     input   wire    [`InstBus       ]   I_inst,               //指令内容
     input   wire    [`InstAddrBus   ]   I_inst_addr,
 
+    input   wire    [`InstAddrBus   ]   I_if_addr,
+    input   wire    [`InstAddrBus   ]   I_dec_addr,
+    input   wire    [`InstAddrBus   ]   I_ex_addr,
+    input   wire    [`InstAddrBus   ]   I_ls_addr,
+    
+
     input   wire    [`RegAddrBus    ]   I_rs1_raddr,      //读寄存器1地址
     input   wire    [`RegAddrBus    ]   I_rs2_raddr,      //读寄存器2地址
 
@@ -51,13 +57,7 @@ module regfile
 
     import "DPI-C" function void trap(input int reg_data, input int halt_pc);
 
-    always @(*) begin
-        if(I_inst == `RV_EBREAK) begin
-            trap(regs[10], I_inst_addr);
-        end
-    end
-
-    import "DPI-C" function void cpu_value(input int valid, input int inst, input int pc, 
+    import "DPI-C" function void cpu_value(input int valid, input int inst, input int inst_addr, input int pc, 
         input int gpr0, input int gpr1, input int gpr2, input int gpr3, 
         input int gpr4, input int gpr5, input int gpr6, input int gpr7, 
         input int gpr8, input int gpr9, input int gpr10, input int gpr11, 
@@ -68,32 +68,45 @@ module regfile
         input int gpr28, input int gpr29, input int gpr30, input int gpr31);
 
     reg [`InstBus] inst_r1, inst_r2;
-    reg [`InstAddrBus] pc_r1, pc_r2;
+    reg [`InstAddrBus] inst_addr_r1, inst_addr_r2;
+    reg [`InstAddrBus] pc;
     always @(posedge clk or posedge rst) begin
         if(rst) begin
-            inst_r1 <= `ZeroWord;
-            pc_r1   <= `ZeroWord;
-            inst_r2 <= `ZeroWord;
-            pc_r2   <= `ZeroWord;
+            inst_r1         <= `ZeroWord;
+            inst_addr_r1    <= `ZeroWord;
+            inst_r2         <= `ZeroWord;
+            inst_addr_r2    <= `ZeroWord;
+            pc              <= `ZeroWord;
         end else begin
-            inst_r1 <= I_inst;
-            pc_r1   <= I_inst_addr;
-            inst_r2 <= inst_r1;
-            pc_r2   <= pc_r1;
+            inst_r1         <= I_inst;
+            inst_addr_r1    <= I_inst_addr;
+            inst_r2         <= inst_r1;
+            inst_addr_r2    <= inst_addr_r1;
+            pc              <= I_ls_addr == `ZeroWord ? 
+                               (I_ex_addr == `ZeroWord ? 
+                                (I_dec_addr == `ZeroWord ? I_if_addr : I_dec_addr) 
+                                : I_ex_addr) 
+                               : I_ls_addr;
         end
     end
 
     always @(*) begin
-        if(inst_r1 != `ZeroWord && (inst_r2 != inst_r1 || pc_r2 != pc_r1))
+
+        if(inst_r1 == `RV_EBREAK) begin
+            trap(regs[10], inst_addr_r1); // a0
+        end
+
+        if(inst_r1 != `ZeroWord && (inst_r2 != inst_r1 || inst_addr_r2 != inst_addr_r1)) begin
             cpu_value
             (
-                1, inst_r1, pc_r1,
+                1, inst_r1, inst_addr_r1, pc, 
                 regs[0],  regs[1],  regs[2],  regs[3],  regs[4],  regs[5],  regs[6],  regs[7],
                 regs[8],  regs[9],  regs[10], regs[11], regs[12], regs[13], regs[14], regs[15],
                 regs[16], regs[17], regs[18], regs[19], regs[20], regs[21], regs[22], regs[23],
                 regs[24], regs[25], regs[26], regs[27], regs[28], regs[29], regs[30], regs[31]
             );
-        else begin end
+        end
+
     end
 
 

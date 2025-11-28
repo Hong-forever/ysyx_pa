@@ -4,7 +4,7 @@
 static TOP_NAME dut;
 int cpu_inst_valid = 0;
 
-IFDEF(CONFIG_DIFFTEST, void difftest_step(paddr_t pc/*, vaddr_t npc*/));
+IFDEF(CONFIG_DIFFTEST, void difftest_step(paddr_t pc, paddr_t npc));
 void reg_display();
 
 #ifdef CONFIG_USE_NVBOARD
@@ -57,13 +57,13 @@ void iring_trace_printf() {
 
 void check_watchpoint();
 
-static void trace_and_difftest(Decode _this)
+static void trace_and_difftest(Decode _this, paddr_t dnpc)
 {
     if(g_print_step) {
         IFDEF(CONFIG_ITRACE, printf("%s\n", _this.logbuf));
     }
     IFDEF(CONFIG_ITRACE, iringbuf_trace(_this.logbuf));
-    IFDEF(CONFIG_DIFFTEST, difftest_step(_this.pc));
+    IFDEF(CONFIG_DIFFTEST, difftest_step(_this.pc, dnpc));
     IFDEF(CONFIG_WATCHPOINT, check_watchpoint());
 }
 
@@ -177,7 +177,7 @@ static void execute(uint64_t n)
         exec_once();
 
         if(cpu_inst_valid) {
-            trace_and_difftest(s);
+            trace_and_difftest(s, cpu.pc);
             cpu_inst_valid = 0;
         } else {
             n++;
@@ -224,7 +224,7 @@ void cpu_exec(uint64_t n)
             }
             break;
         case NPC_ABORT:
-            printf(COLOR_RED "[=>>> ABORT at pc = 0x%08x\n" COLOR_END, cpu.pc);
+            printf(COLOR_RED "[=>>> ABORT at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
             break;
         // case NPC_QUIT:
         //     break;

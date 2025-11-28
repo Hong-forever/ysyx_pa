@@ -3,6 +3,7 @@
 #include "utils.h"
 
 static char *diff_so_file = NULL;
+static char *log_file = NULL;
 static char *img_file = NULL;
 static char *elf_file = NULL;
 static int difftest_port = 1234;
@@ -32,8 +33,8 @@ static int parse_args(int argc, char *argv[]) {
     while( (o = getopt_long(argc, argv, "-bhl:e:d:p:", table, NULL)) != -1) {
         switch(o) {
             case 'b': sdb_set_batch_mode(); break;
-            case 'p': /*scanf(optarg, "%d", &difftest_port);*/ break;
-            case 'l': /*log_file = optarg;*/ break;
+            case 'p': scanf(optarg, "%d", &difftest_port); break;
+            case 'l': log_file = optarg; break;
             case 'e': elf_file = optarg; break;
             case 'd': diff_so_file = optarg; break;
             case  1 : img_file = optarg; return 0;
@@ -65,7 +66,7 @@ static long load_img()
     fseek(fp, 0, SEEK_END);
     long size = ftell(fp);
 
-    printf("The image is %s, size = 0x%08lx\n", img_file, size);
+    printf(COLOR_BLUE "The image is %s, size = 0x%08lx\n" COLOR_END, img_file, size);
 
     fseek(fp, 0, SEEK_SET);
     int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
@@ -82,8 +83,11 @@ static void welcome()
 
 void init_monitor(int argc, char *argv[]) {
 
-    parse_args(argc, argv);
+    // for (int i=0; i<argc; i++) {
+    //     printf("argv[%d] = %s\n", i, argv[i]);
+    // }
 
+    parse_args(argc, argv);
 
     IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 

@@ -23,7 +23,7 @@ INC_PATH += $(sort $(dir $(shell find $(abspath ./csrc) -name "*.h")))
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
+				-O3 --x-assign fast --x-initial fast 
 
 VERILATOR_CFLAGS += -I./vsrc
 VERILATOR_CFLAGS += -Wno-WIDTHEXPAND
@@ -35,11 +35,14 @@ BIN = $(BUILD_DIR)/$(TOPNAME)
 include $(NPC_HOME)/scripts/difftest.mk
 
 NPC_EXEC := $(BIN) $(IMG)
-ARGS += $(ARGS_DIFF)
+
+override ARGS ?= --log=$(BUILD_DIR)/npc-log.txt
+override ARGS += $(ARGS_DIFF)
 
 sim: $(NPC_EXEC)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	LD_PRELOAD=$(shell gcc -print-file-name=libasan.so) $(BIN) $(ARGS) $(IMG)
+	@echo $(BIN) $(ARGS) $(IMG)
+	$(BIN) $(ARGS) $(IMG)
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -70,7 +73,8 @@ CSRCS := $(filter-out $(CSRCS-BLACKLIST-y),$(CSRCS-y))
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 
 CXXFLAGS += $(INCFLAGS) 
-CXXFLAGS += -g -O2 
+CXXFLAGS += -g -O2 -Wall -Werror -Wno-unused-result -Wno-unused-variable -Wno-unused-function
+CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 CXXFLAGS += -DTOP_NAME="V$(TOPNAME)" 
 
 # CXXFLAGS += -fpermissive
@@ -79,7 +83,7 @@ ifeq ($(use_nvbrd), 1)
 CXXFLAGS += -DCONFIG_USE_NVBOARD=1
 endif
 
-LDFLAGS += -lreadline -ldl -lm -lstdc++ -lpthread
+LDFLAGS += -lreadline -ldl -lm -lstdc++ -lpthread -fsanitize=address -fno-omit-frame-pointer
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
