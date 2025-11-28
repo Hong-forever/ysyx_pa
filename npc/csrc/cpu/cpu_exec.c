@@ -19,6 +19,7 @@ void nvboard()
 #endif
 
 static bool g_print_step = false;
+uint64_t g_nr_guest_inst = 0;
 
 #define MAX_INST_TO_PRINT 10
 #define IRINGBUF_SIZE 256
@@ -62,6 +63,7 @@ static void trace_and_difftest(Decode _this, paddr_t dnpc)
     if(g_print_step) {
         IFDEF(CONFIG_ITRACE, printf("%s\n", _this.logbuf));
     }
+    IFDEF(CONFIG_TRACE, log_write("%s\n", _this.logbuf));
     IFDEF(CONFIG_ITRACE, iringbuf_trace(_this.logbuf));
     IFDEF(CONFIG_DIFFTEST, difftest_step(_this.pc, dnpc));
     IFDEF(CONFIG_WATCHPOINT, check_watchpoint());
@@ -176,12 +178,14 @@ static void execute(uint64_t n)
     while (n-- > 0) {
         exec_once();
 
-        if(cpu_inst_valid) {
-            trace_and_difftest(s, cpu.pc);
-            cpu_inst_valid = 0;
-        } else {
+        if(!cpu_inst_valid) {
             n++;
+            continue;
         }
+
+        trace_and_difftest(s, cpu.pc);
+        cpu_inst_valid = 0;
+        g_nr_guest_inst++;
 
         if (npc_state.state == NPC_STOP || npc_state.state == NPC_ABORT) {
             break;

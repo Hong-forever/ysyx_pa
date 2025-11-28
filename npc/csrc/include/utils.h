@@ -17,4 +17,14 @@ typedef struct {
 
 extern NPCState npc_state;
 
+#define log_write(...) \
+    do { \
+        extern FILE* log_fp; \
+        extern bool log_enable(); \
+        if (log_enable() && log_fp != NULL) { \
+            fprintf(log_fp, __VA_ARGS__); \
+            fflush(log_fp); \
+        } \
+    } while (0) \
+
 #endif
