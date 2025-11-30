@@ -125,5 +125,7 @@ void difftest_step(paddr_t pc, paddr_t npc)
     checkregs(&ref_r, pc);
 }
 #else
-void init_difftest(char *ref_so_file, long img_size, int port) {}
+void init_difftest(char *ref_so_file, long img_size, int port) {
+    printf("Differential testing: " COLOR_RED "%s\n" COLOR_END, "OFF");
+}
 #endif

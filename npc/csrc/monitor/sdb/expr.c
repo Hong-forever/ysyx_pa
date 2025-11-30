@@ -127,7 +127,7 @@ static bool make_token(char *e)
     return true;
 }
 
-uint32_t EmuMemRead(paddr_t raddr);
+word_t vaddr_read(vaddr_t raddr);
 word_t reg_str2val(const char *s, bool *success);
 
 
@@ -361,7 +361,7 @@ static word_t eval_factor(bool *success)
             word_t addr = eval_factor(success);
             if (!*success)
                 break;
-            result = EmuMemRead(addr);
+            result = vaddr_read(addr);
             break;
         }
         case '(': {

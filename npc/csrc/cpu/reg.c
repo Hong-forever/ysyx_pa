@@ -20,6 +20,7 @@ extern "C" void cpu_value(int valid, int inst, int inst_addr, int pc, int gpr0, 
                           int gpr24, int gpr25, int gpr26, int gpr27,
                           int gpr28, int gpr29, int gpr30, int gpr31)
 {
+    // printf("dut npc: pc=0x%08x\n", pc);
     cpu_inst_valid = valid;
     s.inst = inst; s.pc = inst_addr;
 
@@ -32,6 +33,7 @@ extern "C" void cpu_value(int valid, int inst, int inst_addr, int pc, int gpr0, 
     cpu.gpr[20] = gpr20; cpu.gpr[21] = gpr21; cpu.gpr[22] = gpr22; cpu.gpr[23] = gpr23;
     cpu.gpr[24] = gpr24; cpu.gpr[25] = gpr25; cpu.gpr[26] = gpr26; cpu.gpr[27] = gpr27;
     cpu.gpr[28] = gpr28; cpu.gpr[29] = gpr29; cpu.gpr[30] = gpr30; cpu.gpr[31] = gpr31;
+    // printf("pc=0x%08x inst=0x%08x\n", s.pc, s.inst);
 }
 
 void reg_display()

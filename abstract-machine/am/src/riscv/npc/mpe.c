@@ -1,4 +1,4 @@
-#include <am.h>
+#include <npc.h>
 
 bool mpe_init(void (*entry)()) {
   return false;

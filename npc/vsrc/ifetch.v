@@ -38,14 +38,14 @@ module ifetch
     wire [`InstAddrBus] npc;
     wire [`InstAddrBus] pc_plus4;
 
-    reg ibus_req;
-    always @(posedge clk or posedge rst) begin
-        if(rst) begin
-            ibus_req <= `False;
-        end else begin
-            ibus_req <= ~I_jtag_halt;
-        end
-    end
+    // reg ibus_req;
+    // always @(posedge clk or posedge rst) begin
+    //     if(rst) begin
+    //         ibus_req <= `False;
+    //     end else begin
+    //         ibus_req <= ~I_jtag_halt;
+    //     end
+    // end
 
     // 取指PC
     reg [`InstAddrBus] pc;
@@ -67,7 +67,7 @@ module ifetch
     assign O_inst = I_ibus_data;
     assign O_inst_addr = pc;
 
-    assign O_ibus_req = ibus_req;
+    assign O_ibus_req = ~rst;
     assign O_ibus_we = `False;
     assign O_ibus_addr = pc;
     assign O_ibus_data = `ZeroWord;

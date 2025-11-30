@@ -17,6 +17,8 @@ void init_difftest(char *ref_so_file, long img_size, int port);
 void init_sdb();
 void init_disasm();
 void init_ftrace(char *elf_file);
+void init_mem();
+void init_rand();
 
 static int parse_args(int argc, char *argv[]) {
     const struct option table[] = {
@@ -70,7 +72,7 @@ static long load_img()
     printf(COLOR_BLUE "The image is %s, size = 0x%08lx\n" COLOR_END, img_file, size);
 
     fseek(fp, 0, SEEK_SET);
-    int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
+    int ret = fread(guest_to_host(CONFIG_MBASE), size, 1, fp);
     assert(ret == 1);
 
     fclose(fp);
@@ -90,9 +92,13 @@ void init_monitor(int argc, char *argv[]) {
 
     parse_args(argc, argv);
 
+    init_rand();
+
     init_log(log_file);
 
     IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
+
+    init_mem();
 
     // IFDEF(CONFIG_DEVICE, init_device());
     

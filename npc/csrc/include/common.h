@@ -7,6 +7,7 @@
 #include "autoconf.h"
 
 typedef uint32_t paddr_t;
+typedef uint32_t vaddr_t;
 typedef uint32_t word_t;
 
 #define PMEM_LEFT  ((paddr_t)CONFIG_MBASE)

@@ -2,7 +2,7 @@
 #include "utils.h"
 
 void cpu_exec(uint64_t n);
-uint32_t EmuMemRead(paddr_t raddr);
+word_t vaddr_read(vaddr_t raddr);
 word_t eval_expr(char *e, bool *success);
 void reg_display();
 void init_regex();
@@ -176,7 +176,7 @@ static int cmd_x(char *args)
         }
 
         for(int i=0; i<n; i++) {
-            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, EmuMemRead(expr_res+4*i));
+            printf("addr-0x%08x --> inst: %08x\n", expr_res+4*i, vaddr_read(expr_res+4*i));
         }
     }
     return 0;

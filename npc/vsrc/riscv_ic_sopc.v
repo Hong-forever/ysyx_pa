@@ -55,19 +55,20 @@ module top
         .I_jtag_haltreq         (1'b0                       )
     );
 
-    wire [`MemAddrBus] ibus_addr_to_guest = ibus_req ? ibus_addr - `RomAddrBase : 0;
-    wire [`MemAddrBus] dbus_addr_to_guest = dbus_req ? dbus_addr - `RomAddrBase : 0;
 
+    import "DPI-C" function int paddr_read(input int raddr);
+    import "DPI-C" function void paddr_write(input int waddr, input int wdata, input int wmask);
 
-    import "DPI-C" function int pmem_read(input int raddr);
-    import "DPI-C" function void pmem_write(input int waddr, input int wdata, input int wmask);
+    assign ibus_rdata = ibus_req ? paddr_read(ibus_addr) : `ZeroWord;
+    assign dbus_rdata = dbus_req ? paddr_read(dbus_addr) : `ZeroWord;
 
-    assign ibus_rdata = pmem_read(ibus_addr_to_guest);
-    assign dbus_rdata = pmem_read(dbus_addr_to_guest);
+    // initial begin
+    //     $monitor("ibusreq=%d, pc=0x%08x, dbusreq=%d, dpc=0x%08x, idata=0x%08x, ddata=0x%08x\n", ibus_req, ibus_addr, dbus_req, dbus_addr, ibus_rdata, dbus_rdata);
+    // end
 
     always @(*) begin
         if (dbus_req && dbus_we) begin
-            pmem_write(dbus_addr_to_guest, dbus_wdata, {28'b0, dbus_mask});
+            paddr_write(dbus_addr, dbus_wdata, {28'b0, dbus_mask});
         end
     end
 

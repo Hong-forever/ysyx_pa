@@ -1,4 +1,4 @@
-#include <am.h>
+#include <npc.h>
 
 bool vme_init(void* (*pgalloc_f)(int), void (*pgfree_f)(void*)) {
   return false;
