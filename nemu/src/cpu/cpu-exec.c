@@ -28,7 +28,7 @@
 #define IRINGBUF_SIZE 256
 #define IRINGBUF_LINE 20
 
-CPU_state cpu = {};
+CPU_state cpu = { .mstatus_reg = 0x1800 };
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
@@ -79,6 +79,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+#ifdef CONFIG_LOOP_DETECT
 void detect_loop_pattern() { 
     static bool initialized = false;
     if(!initialized) {
@@ -120,12 +121,14 @@ void detect_loop_pattern() {
         }
     }
 }
+#endif
+
 static void exec_once(Decode *s, vaddr_t pc) {
     // printf("exec_once at pc: 0x%08x\n", pc);
     s->pc = pc;
     s->snpc = pc;
     isa_exec_once(s);
-    detect_loop_pattern();
+    IFDEF(CONFIG_LOOP_DETECT, detect_loop_pattern());
     cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
     char *p = s->logbuf;
