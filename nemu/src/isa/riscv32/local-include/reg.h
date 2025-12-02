@@ -26,28 +26,18 @@ static inline int check_reg_idx(int idx) {
 
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 
-#define mstatus  (cpu.mstatus_reg)
-#define mcause   (cpu.mcause_reg)
-#define mepc     (cpu.mepc_reg)
-#define mtvec    (cpu.mtvec_reg)
+#define mstatus  (cpu.csr.mstatus)
+#define mcause   (cpu.csr.mcause)
+#define mepc     (cpu.csr.mepc)
+#define mtvec    (cpu.csr.mtvec)
 
-static inline word_t csr_read(int idx) {
+static inline word_t *csr_reg(int idx) {
   switch (idx) {
-    case 0x300: return mstatus;
-    case 0x305: return mtvec;
-    case 0x341: return mepc;
-    case 0x342: return mcause;
-    default:    panic("Unsupported CSR read: 0x%x\n", idx); return 0;
-  }
-}
-
-static inline void csr_write(int idx, word_t val) {
-  switch (idx) {
-    case 0x300: mstatus = val; break;
-    case 0x305: mtvec   = val; break;
-    case 0x341: mepc    = val; break;
-    case 0x342: mcause  = val; break;
-    default:    panic("Unsupported CSR write: 0x%x\n", idx); break;
+    case 0x300: return &mstatus;
+    case 0x305: return &mtvec;
+    case 0x341: return &mepc;
+    case 0x342: return &mcause;
+    default:    panic("Unsupported CSR: 0x%03x\n", idx);
   }
 }
 

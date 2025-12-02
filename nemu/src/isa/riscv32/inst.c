@@ -36,7 +36,13 @@ enum {
 #define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 20) | BITS(i, 19, 12) << 12 | BITS(i, 20, 20) << 11 | BITS(i, 30, 21) << 1; } while(0)
 #define immB() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 12) | BITS(i, 7, 7) << 11 | BITS(i, 30, 25) << 5 | BITS(i, 11, 8) << 1; } while(0)
 #define immCSR() do { *imm = SEXT(BITS(i, 19, 15), 5); } while(0)
-#define got_csr_read() do { csr_idx = BITS(i, 31, 20); } while(0)
+#define got_CSR() do { csr_idx = BITS(i, 31, 20); } while(0)
+#define CSR(i) *csr_reg(i)
+#define ECALL(dnpc) do { \
+    bool success; \
+    dnpc = isa_raise_intr(isa_reg_str2val("a7", &success), s->pc); \
+  } while(0)
+#define MRET(dnpc) do { dnpc = mepc; } while(0)
 
 int rs1 = 0;
 int rs2 = 0;
@@ -54,7 +60,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     case TYPE_R: src1R(); src2R();         break;
     case TYPE_M: src1R(); src2R();         break;
     case TYPE_B: src1R(); src2R(); immB(); break;
-    case TYPE_CSR: got_csr_read(); immCSR();    break;
+    case TYPE_CSR: got_CSR(); src1R();       immCSR();    break;
     case TYPE_N:                           break;
     default: panic("unsupported type = %d", type);
   }
@@ -126,14 +132,15 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , M, R(rd) = (src2 != 0) ? ((int32_t)src1 == INT32_MIN && src2 == -1) ? 0 : (int32_t)src1 % (int32_t)src2 : src1);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , M, R(rd) = (src2 != 0) ? src1 % src2 : src1);
 
-  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , CSR, R(rd) = csr_read(csr_idx); csr_write(csr_idx, src1));
-  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , CSR, R(rd) = csr_read(csr_idx); if(rs1 != 0) csr_write(csr_idx, csr_read(csr_idx) | src1)); 
-  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc  , CSR, R(rd) = csr_read(csr_idx); if(rs1 != 0) csr_write(csr_idx, csr_read(csr_idx) & (~src1)));
-  INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , CSR, R(rd) = csr_read(csr_idx); csr_write(csr_idx, imm));
-  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , CSR, R(rd) = csr_read(csr_idx); if(imm != 0) csr_write(csr_idx, csr_read(csr_idx) | imm));
-  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , CSR, R(rd) = csr_read(csr_idx); if(imm != 0) csr_write(csr_idx, csr_read(csr_idx) & (~imm)));
-
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(11, s->pc));
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) = src1);
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , CSR, R(rd) = CSR(csr_idx); if(rs1 != 0) CSR(csr_idx) |= src1); 
+  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc  , CSR, R(rd) = CSR(csr_idx); if(rs1 != 0) CSR(csr_idx) &= ~src1);
+  INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) = imm);
+  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , CSR, R(rd) = CSR(csr_idx); if(imm != 0) CSR(csr_idx) |= imm);
+  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , CSR, R(rd) = CSR(csr_idx); if(imm != 0) CSR(csr_idx) &= ~imm);
+ 
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, MRET(s->dnpc));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, ECALL(s->dnpc));
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
