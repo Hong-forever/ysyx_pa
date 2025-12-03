@@ -26,17 +26,17 @@ static inline int check_reg_idx(int idx) {
 
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 
-#define mstatus  (cpu.csr.mstatus)
-#define mcause   (cpu.csr.mcause)
-#define mepc     (cpu.csr.mepc)
-#define mtvec    (cpu.csr.mtvec)
+#define Mstatus()  (cpu.csr.mstatus)
+#define Mcause()   (cpu.csr.mcause)
+#define Mepc()     (cpu.csr.mepc)
+#define Mtvec()    (cpu.csr.mtvec)
 
 static inline word_t *csr_reg(int idx) {
   switch (idx) {
-    case 0x300: return &mstatus;
-    case 0x305: return &mtvec;
-    case 0x341: return &mepc;
-    case 0x342: return &mcause;
+    case 0x300: return &Mstatus();
+    case 0x305: return &Mtvec();
+    case 0x341: return &Mepc();
+    case 0x342: return &Mcause();
     default:    panic("Unsupported CSR: 0x%03x\n", idx);
   }
 }

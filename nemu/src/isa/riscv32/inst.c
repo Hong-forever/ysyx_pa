@@ -42,7 +42,12 @@ enum {
     bool success; \
     dnpc = isa_raise_intr(isa_reg_str2val("a7", &success), s->pc); \
   } while(0)
-#define MRET(dnpc) do { dnpc = mepc; } while(0)
+/*
+#define ECALL(dnpc) do { \
+    dnpc = isa_raise_intr(11, s->pc); \
+  } while(0)
+*/
+#define MRET(dnpc) do { dnpc = Mepc(); } while(0)
 
 int rs1 = 0;
 int rs2 = 0;

@@ -83,6 +83,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 void detect_loop_pattern() { 
     static bool initialized = false;
     if(!initialized) {
+        printf("Loop detection initialized.\n");
         for(int i=0; i<LOOP_HISTORY_SIZE; i++) {
             loop_history[i].pc = 0;
             loop_history[i].count = 0;

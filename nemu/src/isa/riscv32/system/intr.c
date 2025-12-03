@@ -15,18 +15,51 @@
 
 #include "../local-include/reg.h"
 
-word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  /* TODO: Trigger an interrupt/exception with ``NO''.
-   * Then return the address of the interrupt/exception vector.
-   */
-  if(NO == -1) epc += 4;
-  mcause = NO;
-  mepc = epc;
-  // printf("mcause: 0x%08x, mepc: 0x%08x, mtvec: 0x%08x\n", mcause, mepc, mtvec);
-
-  return mtvec;
+char *cause_val2str(word_t cause)
+{
+    switch(cause) {
+        case 0: return "Instruction address misaligned";
+        case 1: return "Instruction access fault";
+        case 2: return "Illegal instruction";
+        case 3: return "Breakpoint";
+        case 4: return "Load address misaligned";
+        case 5: return "Load access fault";
+        case 6: return "Store/AMO address misaligned";
+        case 7: return "Store/AMO access fault";
+        case 8: return "Environment call from U-mode";
+        case 9: return "Environment call from S-mode";
+        case 11: return "Environment call from M-mode";
+        case 12: return "Instruction page fault";
+        case 13: return "Load page fault";
+        case 15: return "Store/AMO page fault";
+        case -1: return "Yield";
+        default: return "Unknown cause";
+    }
 }
 
-word_t isa_query_intr() {
-  return INTR_EMPTY;
+void etrace()
+{
+    printf("[ETRACE] cause: %s!\nmcause=0x%08x, mepc: 0x%08x, mtvec: 0x%08x\n", cause_val2str(Mcause()), Mcause(), Mepc(), Mtvec());
+}
+
+word_t isa_raise_intr(word_t NO, vaddr_t epc)
+{
+    /* TODO: Trigger an interrupt/exception with ``NO''.
+     * Then return the address of the interrupt/exception vector.
+     */
+    if (NO == -1 || NO == 11)
+        epc += 4;
+    Mcause() = NO;
+    Mepc() = epc;
+
+    // void isa_reg_display();
+    // isa_reg_display();
+    IFDEF(CONFIG_ETRACE, etrace());
+    
+    return Mtvec();
+}
+
+word_t isa_query_intr()
+{
+    return INTR_EMPTY;
 }

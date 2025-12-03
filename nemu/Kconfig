@@ -167,6 +167,13 @@ config DTRACE
   bool "Enable device trace"
   default n 
 
+config ETRACE
+  bool "Enable exception trace"
+  default n 
+
+config LOOP_DETECT
+  bool "Enable loop detection"
+  default n
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

@@ -12,6 +12,14 @@ Context* __am_irq_handle(Context *c) {
       default: ev.event = EVENT_ERROR; break;
     }
 
+    // for (int i=0; i<32; i++) printf("context reg[%d] = 0x%08x\n", i, c->gpr[i]);
+    // printf("context mcause = 0x%08x\n", c->mcause);
+    // printf("context mstatus = 0x%08x\n", c->mstatus);
+    // printf("context mepc = 0x%08x\n", c->mepc);
+
+    // halt(1);
+
+
     c = user_handler(ev, c);
     assert(c != NULL);
   }
