@@ -18,6 +18,11 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+typedef struct {
+    word_t gpr[32];
+    word_t pc;
+} CPU_DIFF_REF_STATE;
+
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
 {
     if (direction == DIFFTEST_TO_REF) {
@@ -31,18 +36,18 @@ __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
 __EXPORT void difftest_regcpy(void *dut, bool direction)
 {
     if (direction == DIFFTEST_TO_REF) {
-        // printf("difftest_regcpy to ref: pc=0x%08x, dutpc = 0x%08x\n", cpu.pc, ((CPU_state *)dut)->pc);
-        cpu.pc = ((CPU_state *)dut)->pc;
+        // printf("difftest_regcpy to ref: pc=0x%08x, dutpc = 0x%08x\n", cpu.pc, ((CPU_DIFF_REF_STATE *)dut)->pc);
+        cpu.pc = ((CPU_DIFF_REF_STATE *)dut)->pc;
         for (int i = 0; i < 32; i++) {
-            cpu.gpr[i] = ((CPU_state *)dut)->gpr[i];
+            cpu.gpr[i] = ((CPU_DIFF_REF_STATE *)dut)->gpr[i];
         }
     } else if (direction == DIFFTEST_TO_DUT) {
         // printf("difftest_regcpy to dut: pc=0x%08x\n", cpu.pc);
-        ((CPU_state *)dut)->pc = cpu.pc;
+        ((CPU_DIFF_REF_STATE *)dut)->pc = cpu.pc;
         for (int i = 0; i < 32; i++) {
-            ((CPU_state *)dut)->gpr[i] = cpu.gpr[i];
+            ((CPU_DIFF_REF_STATE *)dut)->gpr[i] = cpu.gpr[i];
         }
-        // printf("difftest_regcpy to dut done: pc=0x%08x, ref_cpu=0x%08x\n", ((CPU_state *)dut)->pc, cpu.pc);
+        // printf("difftest_regcpy to dut done: pc=0x%08x, ref_cpu=0x%08x\n", ((CPU_DIFF_REF_STATE *)dut)->pc, cpu.pc);
     } else {
         assert(0);
     }

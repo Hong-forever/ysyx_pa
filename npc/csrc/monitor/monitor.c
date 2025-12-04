@@ -59,7 +59,7 @@ static int parse_args(int argc, char *argv[]) {
 static long load_img()
 {
     if (img_file == NULL) {
-        printf(COLOR_BLUE "No image is given. Use the default build-in image.\n" COLOR_END);
+        PRINTF_BLUE("No image is given. Use the default build-in image.\n");
         return 4096;
     }
 
@@ -69,7 +69,7 @@ static long load_img()
     fseek(fp, 0, SEEK_END);
     long size = ftell(fp);
 
-    printf(COLOR_BLUE "The image is %s, size = 0x%08lx\n" COLOR_END, img_file, size);
+    PRINTF_BLUE("The image is %s, size = 0x%08lx\n", img_file, size);
 
     fseek(fp, 0, SEEK_SET);
     int ret = fread(guest_to_host(CONFIG_MBASE), size, 1, fp);
@@ -81,7 +81,7 @@ static long load_img()
 
 static void welcome()
 {
-    printf(COLOR_BLUE "Welcome to NPC!\n" COLOR_END);
+    PRINTF_BLUE("Welcome to NPC!\n");
 }
 
 void init_monitor(int argc, char *argv[]) {

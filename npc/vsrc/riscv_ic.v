@@ -24,6 +24,7 @@ module riscv_ic
     output  wire    [`MemDataBus    ]   O_dbus_data,
     output  wire    [`DBUS_MASK-1:0 ]   O_dbus_mask,
     input   wire    [`MemDataBus    ]   I_dbus_data,
+    input   wire                        device_skip_flag,
 
     //from peripheral
     input   wire    [`INT_BUS       ]   I_int,
@@ -231,6 +232,7 @@ module riscv_ic
     //-------------------------------------------------------------
     // instantiate modules
     //-------------------------------------------------------------
+    wire wbu_device_skip_flag;
 
     ifetch u_ifetch
     (
@@ -364,7 +366,9 @@ module riscv_ic
 
         .I_rd_we                (I_wb_rd_we                 ),
         .I_rd_waddr             (I_wb_rd_waddr              ),
-        .I_rd_wdata             (I_wb_rd_wdata              )
+        .I_rd_wdata             (I_wb_rd_wdata              ),
+
+        .I_device_skip_flag     (wbu_device_skip_flag       )
     );
 
     wire [`RegAddrBus] I_rs1; // for ftrace npc
@@ -667,6 +671,7 @@ module riscv_ic
         .I_flush                (O_flush                    )
     );
 
+
     pipeline_ls_wb u0_pipeline_ls_wb
     (
         .clk                    (clk                        ),
@@ -681,6 +686,8 @@ module riscv_ic
         .I_csr_waddr            (O_ls_csr_waddr             ),
         .I_csr_wdata            (O_ls_csr_wdata             ),
 
+        .I_device_skip_flag     (device_skip_flag           ),
+
         .O_inst                 (I_wb_inst                  ),
         .O_inst_addr            (I_wb_inst_addr             ),
         .O_rd_we                (I_wb_rd_we                 ),
@@ -691,6 +698,8 @@ module riscv_ic
         .O_csr_wdata            (I_wb_csr_wdata             ),
         .O_fwd_rd_wdata         (I_wb_fwd_rd_wdata          ),
         .O_fwd_csr_wdata        (I_wb_fwd_csr_wdata         ),
+
+        .O_device_skip_flag     (wbu_device_skip_flag       ),
 
         .I_stall                (Stall[`Stall_ls_wb]        ),
         .I_stallreq_from_lsu    (stallreq_from_ls           ),

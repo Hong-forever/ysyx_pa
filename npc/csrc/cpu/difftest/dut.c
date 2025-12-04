@@ -78,7 +78,7 @@ void init_difftest(char *ref_so_file, long img_size, int port)
     //        "If it is not necessary, you can turn it off in menuconfig.",
     //        ref_so_file);
 
-    CPU_state cpu_r = { .pc = RESET_VECTOR };
+    CPU_state cpu_r = {.pc = RESET_VECTOR};
 
     ref_difftest_init(port);
     ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
@@ -100,32 +100,35 @@ void difftest_step(paddr_t pc, paddr_t npc)
     CPU_state ref_r;
 
     if (skip_dut_nr_inst > 0) {
-      ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-      if (ref_r.pc == npc) {
-        skip_dut_nr_inst = 0;
-        checkregs(&ref_r, npc);
+        ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+        if (ref_r.pc == npc) {
+            skip_dut_nr_inst = 0;
+            checkregs(&ref_r, npc);
+            return;
+        }
+        skip_dut_nr_inst--;
+        if (skip_dut_nr_inst == 0)
+            printf("can not catch up with ref.pc = 0x%08x at pc = 0x%08x\n", ref_r.pc, pc);
         return;
-      }
-      skip_dut_nr_inst --;
-      if (skip_dut_nr_inst == 0)
-        printf("can not catch up with ref.pc = 0x%08x at pc = 0x%08x\n", ref_r.pc, pc);
-      return;
     }
 
     if (is_skip_ref) {
-      // to skip the checking of an instruction, just copy the reg state to reference design
-      ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
-      is_skip_ref = false;
-      return;
+        // printf("aaaaaa Difftest: skip ref at pc: 0x%08x\n", pc);
+        // to skip the checking of an instruction, just copy the reg state to reference design
+        ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+        is_skip_ref = false;
+        return;
     }
     // printf("difftest_step at pc: 0x%08x\n", pc);
     ref_difftest_exec(1);
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
     checkregs(&ref_r, pc);
+
 }
 #else
-void init_difftest(char *ref_so_file, long img_size, int port) {
+void init_difftest(char *ref_so_file, long img_size, int port)
+{
     printf("Differential testing: " COLOR_RED "%s\n" COLOR_END, "OFF");
 }
 #endif

@@ -90,7 +90,11 @@ void set_watchpoint(char *expr) {
 
     strncpy(wp->expr, expr, sizeof(wp->expr)-1);
     wp->old_value = eval_expr(expr, &success);
-    assert(success);
+    if(!success) {
+        printf("Error: eval expr error to watch point\n");
+        free_wp(wp->NO);
+        return ;
+    }
     wp->new_value = wp->old_value;
     wp->hit_count = 0;
 

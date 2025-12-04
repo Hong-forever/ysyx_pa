@@ -343,6 +343,8 @@ module pipeline_ls_wb
     input   wire    [`CSRAddrBus    ]   I_csr_waddr,        // 写CSR寄存器地址
     input   wire    [`CSRDataBus    ]   I_csr_wdata,        // 写CSR寄存器数据
 
+    input   wire                        I_device_skip_flag,
+
 
     output  reg     [`InstBus       ]   O_inst,             // 指令内容
     output  reg     [`InstAddrBus   ]   O_inst_addr,        // 指令地址
@@ -354,6 +356,9 @@ module pipeline_ls_wb
     output  reg     [`CSRDataBus    ]   O_csr_wdata,        // 写CSR寄存器数据
     output  reg     [`RegDataBus    ]   O_fwd_rd_wdata,
     output  reg     [`CSRDataBus    ]   O_fwd_csr_wdata,
+
+    output  wire                        O_device_skip_flag,
+
     input   wire                        I_stall,            // 流水线暂停标志
     input   wire                        I_stallreq_from_lsu, // 流水线暂停标志
     input   wire                        I_kill,             // 指令冲刷
@@ -382,6 +387,7 @@ module pipeline_ls_wb
             O_csr_we    <= 'b0;
             O_csr_waddr <= 'b0;
             O_csr_wdata <= 'b0;
+            O_device_skip_flag <= 'b0;
         end else if(I_kill | I_flush) begin
             O_inst      <= 'b0;
             O_inst_addr <= 'b0;
@@ -393,6 +399,7 @@ module pipeline_ls_wb
             O_csr_we    <= 'b0;
             O_csr_waddr <= 'b0;
             O_csr_wdata <= 'b0;
+            O_device_skip_flag <= 'b0;
         end else if(~I_stall | (stall_from_lsu & I_stall)) begin
             O_inst      <= I_inst;
             O_inst_addr <= I_inst_addr;
@@ -404,6 +411,7 @@ module pipeline_ls_wb
             O_csr_we    <= I_csr_we;
             O_csr_waddr <= I_csr_waddr;
             O_csr_wdata <= I_csr_wdata;
+            O_device_skip_flag <= I_device_skip_flag;
         end
     end
 

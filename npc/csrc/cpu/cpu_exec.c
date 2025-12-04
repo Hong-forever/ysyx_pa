@@ -1,11 +1,17 @@
 #include "isa.h"
 #include "utils.h"
+#include <locale.h>
 
 static TOP_NAME dut;
 int cpu_inst_valid = 0;
 
 IFDEF(CONFIG_DIFFTEST, void difftest_step(paddr_t pc, paddr_t npc));
 void reg_display();
+
+uint64_t get_time();
+uint64_t g_timer = 0;
+
+void difftest_skip_ref();
 
 #ifdef CONFIG_USE_NVBOARD
 #include <nvboard.h>
@@ -115,8 +121,10 @@ void detect_loop_pattern() {
 
 extern "C" void trap(int reg_data, int halt_pc)
 {
+    IFDEF(CONFIG_DIFFTEST, difftest_skip_ref());
     npc_state.halt_pc = halt_pc;
     npc_state.halt_ret = reg_data + 1;
+    npc_state.state = NPC_END;
 }
 
 static void single_cycle()
@@ -135,10 +143,23 @@ void reset(int n)
     dut.rst = 0;
 }
 
-void assert_fail_msg() {
-    IFDEF(CONFIG_ITRACE, iring_trace_printf());
-    reg_display();
+
+void statistic() {
+    setlocale(LC_NUMERIC, "");
+    PRINTF_BLUE("host time spent = %'lu us\n", g_timer);
+    PRINTF_BLUE("total guest instructions = %'lu\n", g_nr_guest_inst);
+    if (g_timer > 0) {
+        PRINTF_BLUE("simulation frequency = %'lu inst/s\n", g_nr_guest_inst * 1000000 / g_timer);
+    } else {
+        PRINTF_BLUE("Finish running in less than 1 us and can not calculate the simulation frequency.\n");
+    }
 }
+
+// void assert_fail_msg() {
+//     IFDEF(CONFIG_ITRACE, iring_trace_printf());
+//     reg_display();
+//     statistic();
+// }
 
 static void exec_once()
 {
@@ -187,14 +208,8 @@ static void execute(uint64_t n)
         cpu_inst_valid = 0;
         g_nr_guest_inst++;
 
-        if (npc_state.state == NPC_STOP || npc_state.state == NPC_ABORT) {
-            break;
-        }
-        else if (npc_state.halt_ret != 0)
-        {
-            npc_state.state = NPC_END;
-            break;
-        }         
+        if (npc_state.state != NPC_RUNNING) break;
+
         IFDEF(CONFIG_USE_NVBOARD, nvboard_update());
     }
 
@@ -216,22 +231,29 @@ void cpu_exec(uint64_t n)
             break;
     }
 
+    uint64_t timer_start = get_time();
+
     execute(n);
+
+    uint64_t timer_end = get_time();
+    g_timer += timer_end - timer_start;
 
     switch (npc_state.state)
     {
         case NPC_END:
             if (npc_state.halt_ret == 1) {
-                printf(COLOR_GREEN "[=>>> HIT GOOD TRAP at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
+                PRINTF_GREEN("[=>>> HIT GOOD TRAP at pc = 0x%08x\n", npc_state.halt_pc);
             } else if (npc_state.halt_ret == 2) {
-                printf(COLOR_RED "[=>>> HIT BAD TRAP at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
+                PRINTF_RED("[=>>> HIT BAD TRAP at pc = 0x%08x\n", npc_state.halt_pc);
             }
+            statistic();
             break;
         case NPC_ABORT:
-            printf(COLOR_RED "[=>>> ABORT at pc = 0x%08x\n" COLOR_END, npc_state.halt_pc);
+            PRINTF_RED("[=>>> ABORT at pc = 0x%08x\n", npc_state.halt_pc);
             break;
-        // case NPC_QUIT:
-        //     break;
+        case NPC_QUIT:
+            statistic();
+            break;
 
         default:
             break;

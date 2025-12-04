@@ -150,7 +150,7 @@ static int cmd_p(char *args) {
         printf("Error to evaluate\n");
     }
 
-    return success ? 0 : -1;
+    return 0;
 }
 
 static int cmd_w(char *args) {

@@ -38,16 +38,12 @@ enum {
 #define immCSR() do { *imm = SEXT(BITS(i, 19, 15), 5); } while(0)
 #define got_CSR() do { csr_idx = BITS(i, 31, 20); } while(0)
 #define CSR(i) *csr_reg(i)
-#define ECALL(dnpc) do { \
-    bool success; \
-    dnpc = isa_raise_intr(isa_reg_str2val("a7", &success), s->pc); \
-  } while(0)
-/*
+  
 #define ECALL(dnpc) do { \
     dnpc = isa_raise_intr(11, s->pc); \
   } while(0)
-*/
-#define MRET(dnpc) do { dnpc = Mepc(); } while(0)
+
+#define MRET(dnpc) do { dnpc = Mepc(); Mstatus() = (((Mstatus() >> 4) & 0x8) | (Mstatus() | 0x80)) & 0x88; } while(0)
 
 int rs1 = 0;
 int rs2 = 0;

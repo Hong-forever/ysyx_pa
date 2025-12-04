@@ -28,6 +28,8 @@ module top
     wire timer_int;
 
     assign inq = {{(`INT_WIDTH-1){1'b0}}, timer_int};
+
+    wire device_skip_flag;
     
     riscv_ic riscv_ic_inst
     (
@@ -49,6 +51,7 @@ module top
         .O_dbus_data            (dbus_wdata                 ),
         .O_dbus_mask            (dbus_mask                  ),
         .I_dbus_data            (dbus_rdata                 ),
+        .device_skip_flag       (device_skip_flag           ),
 
         // from peripheral
         .I_int                  (inq                        ),
@@ -61,6 +64,10 @@ module top
 
     assign ibus_rdata = ibus_req ? paddr_read(ibus_addr) : `ZeroWord;
     assign dbus_rdata = dbus_req ? paddr_read(dbus_addr) : `ZeroWord;
+
+    `define SERIAL_MMIO 32'h1000_0000
+    `define RTC_MMIO    32'h2000_0000
+    assign device_skip_flag = ((dbus_addr & ~32'h3) == `SERIAL_MMIO) || ((dbus_addr & ~32'h7) == `RTC_MMIO);
 
     // initial begin
     //     $monitor("ibusreq=%d, pc=0x%08x, dbusreq=%d, dpc=0x%08x, idata=0x%08x, ddata=0x%08x\n", ibus_req, ibus_addr, dbus_req, dbus_addr, ibus_rdata, dbus_rdata);

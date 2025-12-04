@@ -14,7 +14,7 @@ void init_log(const char *log_file) {
         log_fp = fp;
     }
 
-    printf(COLOR_BLUE "Log is written to %s\n" COLOR_END, log_file ? log_file : "stdout");
+    PRINTF_BLUE("Log is written to %s\n", log_file ? log_file : "stdout");
 }
 
 bool log_enable() {

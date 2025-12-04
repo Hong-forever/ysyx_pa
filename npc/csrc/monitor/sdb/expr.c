@@ -85,7 +85,7 @@ static bool make_token(char *e)
                 char *substr_start = e + position;
                 int substr_len = pmatch.rm_eo;
 
-                printf(COLOR_BLUE "match rules[%d] = \"%s\" at position %d with len %d: %.*s\n" COLOR_END,
+                PRINTF_BLUE("match rules[%d] = \"%s\" at position %d with len %d: %.*s\n",
                     i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
                 /* TODO: Now a new token is recognized with rules[i]. Add codes

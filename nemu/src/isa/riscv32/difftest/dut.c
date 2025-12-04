@@ -17,41 +17,26 @@
 #include <cpu/difftest.h>
 #include "../local-include/reg.h"
 
+
+#define CHECKDIFF(reg, fmt, ...) \
+  if (ref_r->reg != cpu.reg) { \
+    printf("[DIFF]==>> " fmt " got: 0x%08x, but expected: 0x%08x\n", ##__VA_ARGS__, cpu.reg, ref_r->reg); \
+    flag = false; \
+  }
+
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
     bool flag = true;
 
-    if(ref_r->pc != cpu.pc) {
-        flag = false;
-        printf("DIFF==>> pc(ref): 0x%08x, pc(dut): 0x%08x\n", ref_r->pc, cpu.pc);
-    }
+    CHECKDIFF(pc, "pc");
 
     for(int i=0; i<MUXDEF(CONFIG_RVE, 16, 32); i++) {
-        if(ref_r->gpr[i] != cpu.gpr[i]) {
-            printf("gpr[%d](ref): 0x%08x, gpr[%d](dut): 0x%08x\n", i, ref_r->gpr[i], i, cpu.gpr[i]);
-            flag = false;
-            break;
-        } 
+        CHECKDIFF(gpr[i], "gpr[%02d]", i);
     }
 
-    if((ref_r->csr).mstatus != Mstatus()) {
-        flag = false;
-        printf("DIFF==>> mstatus(ref): 0x%08x, mstatus(dut): 0x%08x\n", ref_r->csr.mstatus, Mstatus());
-    }
-
-    if(ref_r->csr.mcause != Mcause()) {
-        flag = false;
-        printf("DIFF==>> mcause(ref): 0x%08x, mcause(dut): 0x%08x\n", ref_r->csr.mcause, Mcause());
-    }
-    
-    if(ref_r->csr.mepc != Mepc()) {
-        flag = false;
-        printf("DIFF==>> mepc(ref): 0x%08x, mepc(dut): 0x%08x\n", ref_r->csr.mepc, Mepc());
-    }
-
-    if(ref_r->csr.mtvec != Mtvec()) {
-        flag = false;
-        printf("DIFF==>> mtvec(ref): 0x%08x, mtvec(dut): 0x%08x\n", ref_r->csr.mtvec, Mtvec());
-    }
+    CHECKDIFF(csr.mstatus, "mstatus");
+    CHECKDIFF(csr.mcause,  "mcause ");
+    CHECKDIFF(csr.mepc,    "mepc   ");
+    CHECKDIFF(csr.mtvec,   "mtvec  ");
 
     if(!flag) {
         printf("Difftest: Error at pc: 0x%08x\n", pc);
